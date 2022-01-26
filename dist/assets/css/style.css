@@ -30173,7 +30173,7 @@ new-task label input[type=checkbox] {
     border-bottom-right-radius: 2px;
 }
 .imagen {
-    max-width: 300px;
+    max-width: 350px;
     width: 90%;
     height: auto;
 }
