@@ -10499,7 +10499,7 @@ a.text-dark:hover, a.text-dark:focus {
 }
 
 .text-muted {
-    color: #868e96 !important;
+    color: green !important;
 }
 
 .text-black-50 {
@@ -20681,7 +20681,7 @@ pre[class*=language-]:before {
     height: calc(100% - 56px);
     margin-top: 56px;
     top: 0;
-    background: #2c3e50;
+    background: #333;
     color: #d0dcda;
 }
 
@@ -20750,7 +20750,7 @@ pre[class*=language-]:before {
 }
 
 .pcoded-navbar .main-menu-header {
-    background: #3e5871;
+    background: #000000;
     position: relative;
     padding: 20px;
     text-align: left;
@@ -20898,7 +20898,7 @@ pre[class*=language-]:before {
 .pcoded-navbar .pcoded-inner-navbar li.pcoded-menu-caption {
     font-size: 13px;
     font-weight: 600;
-    color: #1abc9c;
+    color: #fff;
     padding: 18px 15px 5px;
     text-transform: capitalize;
     position: relative;
@@ -21158,11 +21158,11 @@ pre[class*=language-]:before {
 }
 
 .pcoded-navbar .pcoded-inner-navbar li.active > a, .pcoded-navbar .pcoded-inner-navbar li:focus > a, .pcoded-navbar .pcoded-inner-navbar li:hover > a {
-    color: #1abc9c;
+    color: #dd3f3e;
 }
 
 .pcoded-navbar .pcoded-inner-navbar > li.active > a, .pcoded-navbar .pcoded-inner-navbar > li.pcoded-trigger > a {
-    background: #1abc9c;
+    background: #DD3F3E;
     color: #fff;
 }
 
@@ -23751,7 +23751,7 @@ pre[class*=language-]:before {
 }
 
 .pcoded-header.header-dark {
-    background: #2c3e50;
+    background: #333;
     color: rgba(255, 255, 255, 0.8);
 }
 
@@ -23874,7 +23874,7 @@ pre[class*=language-]:before {
 
 .pcoded-header.header-dark .dropdown .profile-notification .pro-head {
     color: #fff;
-    background: #2c3e50;
+    background: #dd3f3e;
 }
 
 .pcoded-header.header-dark .dropdown .profile-notification .pro-head .dud-logout {
