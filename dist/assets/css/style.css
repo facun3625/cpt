@@ -2712,14 +2712,14 @@ fieldset:disabled a.btn {
 
 .btn-primary {
     color: #fff;
-    background-color: #1abc9c;
-    border-color: #1abc9c;
+    background-color: #db4143;
+    border-color: #db4143;
 }
 
 .btn-primary:hover {
     color: #fff;
-    background-color: #159a80;
-    border-color: #148f77;
+    background-color: #000;
+    border-color: #000;
 }
 
 .btn-primary:focus, .btn-primary.focus {
@@ -17557,7 +17557,7 @@ a.text-dark:hover, a.text-dark:focus {
     box-shadow: 0 2px 1px rgba(0, 0, 0, 0.05);
     margin-bottom: 30px;
     transition: box-shadow 0.2s ease-in-out;
-    border-top: 3px solid #8CDDCD;
+    border-top: 3px solid #db4143;
 }
 
 .card.borderless {
@@ -24485,10 +24485,6 @@ body.box-layout .pcoded-navbar.theme-horizontal ~ .pcoded-header {
     padding-right: 5px;
 }
 
-.review-card .review-block > div:hover {
-    background-color: rgba(26, 188, 156, 0.1);
-}
-
 .to-do-list {
     padding-bottom: 10px;
     margin-bottom: 20px;
@@ -27638,7 +27634,7 @@ text.highcharts-drilldown-data-label {
     min-width: 100%;
     min-height: 100vh;
     background: #1abc9c;
-    background-image: url("../images/auth/img-auth-big.jpg");
+    background-color: #db4143;
     background-size: cover;
     background-attachment: fixed;
     background-position: center;
