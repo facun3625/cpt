@@ -1496,7 +1496,7 @@ pre code {
 
     .col-lg-8 {
         flex: 0 0 66.66667%;
-        max-width: 66.66667%;
+        max-width: 550px;
     }
 
     .col-lg-9 {
@@ -4805,10 +4805,21 @@ input[type="button"].btn-block {
     flex-direction: column;
     min-width: 0;
     word-wrap: break-word;
-    background-color: #fff;
+    background-color: white;
     background-clip: border-box;
     border: 0px solid rgba(0, 0, 0, 0.125);
     border-radius: 2px;
+}
+.card2 {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    word-wrap: break-word;
+    background-image: url("../images/fondo.png");
+    background-clip: border-box;
+    border: 0px solid rgba(0, 0, 0, 0.125);
+    border-radius: 8px;
 }
 
 .card > hr {
@@ -10500,6 +10511,10 @@ a.text-dark:hover, a.text-dark:focus {
 
 .text-muted {
     color: green !important;
+    background-color: white;
+    padding: 15px;
+    text-align: center;
+    border-radius: 8px;
 }
 
 .text-black-50 {
@@ -18105,7 +18120,7 @@ h2,
 h3,
 h4,
 h5 {
-    color: #37474f;
+    color: white;
     font-weight: 600;
 }
 
@@ -18131,7 +18146,7 @@ h5 {
 
 h6 {
     font-size: 16px;
-    color: #37474f;
+    color: #ffffff;
     font-weight: 400;
 }
 
