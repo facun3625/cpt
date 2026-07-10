@@ -1,0 +1,282 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model AdminUser {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+}
+
+model Sede {
+  id               String   @id @default(cuid())
+  nombre           String
+  direccion        String
+  telefono         String
+  orden            Int      @default(0)
+  mostrarEnHeader  Boolean  @default(false)
+  createdAt        DateTime @default(now())
+}
+
+model ContactEmail {
+  id        String   @id @default(cuid())
+  label     String
+  value     String
+  orden     Int      @default(0)
+  createdAt DateTime @default(now())
+}
+
+model SiteSettings {
+  id            String  @id @default("settings")
+  instagramUrl  String?
+}
+
+model ValorM2Entry {
+  id           String   @id @default(cuid())
+  valor        Int
+  vigenteDesde DateTime
+  createdAt    DateTime @default(now())
+}
+
+model ArancelesInfo {
+  id            String @id @default("aranceles")
+  vigenciaFecha String
+}
+
+model ArancelGrupo {
+  id                String        @id @default(cuid())
+  titulo            String
+  orden             Int           @default(0)
+  esHonorarioMinimo Boolean       @default(false)
+  items             ArancelItem[]
+}
+
+model ArancelItem {
+  id      String       @id @default(cuid())
+  grupoId String
+  grupo   ArancelGrupo @relation(fields: [grupoId], references: [id], onDelete: Cascade)
+  label   String
+  valor   Int
+  orden   Int          @default(0)
+}
+
+enum NoticiaTipo {
+  NOTICIA
+  CAPACITACION
+}
+
+model Noticia {
+  id              String          @id @default(cuid())
+  tipo            NoticiaTipo
+  slug            String          @unique
+  titulo          String
+  pretexto        String?
+  texto           String?
+  imagenDestacada String?
+  video           String?
+  enSliderHome    Boolean         @default(false)
+  publicadoEn     DateTime        @default(now())
+  createdAt       DateTime        @default(now())
+  galeria         NoticiaImagen[]
+}
+
+model NoticiaImagen {
+  id        String  @id @default(cuid())
+  noticiaId String
+  noticia   Noticia @relation(fields: [noticiaId], references: [id], onDelete: Cascade)
+  url       String
+  orden     Int     @default(0)
+}
+
+model RepositorioArchivo {
+  id        String   @id @default(cuid())
+  titulo    String
+  url       String
+  extension String
+  tamano    Int
+  createdAt DateTime @default(now())
+}
+
+model MatriculadoHabilitado {
+  id                String    @id @default(cuid())
+  numeroDocumento   String
+  nombre            String
+  apellido          String
+  numeroMatricula   String    @unique
+  fechaMatriculacion DateTime?
+  email             String?
+  createdAt         DateTime  @default(now())
+
+  @@index([numeroDocumento])
+}
+
+model MatriculadosUpload {
+  id         String   @id @default("matriculados")
+  uploadedAt DateTime
+  cantidad   Int
+  nombreArchivo String
+}
+
+model SmtpSettings {
+  id        String   @id @default("smtp")
+  host      String?
+  port      Int      @default(587)
+  secure    Boolean  @default(false)
+  user      String?
+  password  String?
+  fromEmail String?
+  fromName  String?
+  updatedAt DateTime @updatedAt
+}
+
+model Firma {
+  id            String  @id @default(cuid())
+  nombre        String
+  titulo        String
+  firmaUrl      String
+  orden         Int     @default(0)
+  enCertificado Boolean @default(true)
+  enCredencial  Boolean @default(false)
+}
+
+enum SolicitudEstado {
+  PENDIENTE
+  APROBADO
+  RECHAZADO
+}
+
+enum CredencialEstado {
+  PENDIENTE
+  APROBADO
+  RECHAZADO
+  REVOCADO
+}
+
+model CertificadoSolicitud {
+  id                 String          @id @default(cuid())
+  numeroDocumento    String
+  nombre             String
+  apellido           String
+  numeroMatricula    String
+  fechaMatriculacion DateTime?
+  tituloProfesional  String?
+  domicilio          String?
+  email              String
+  lugarPresentacion  String
+  observaciones      String?
+  notasAdicionales   String?
+  estado             SolicitudEstado @default(PENDIENTE)
+  motivoRechazo      String?
+  codigoVerificacion String          @unique
+  pdfUrl             String?
+  expiraEn           DateTime?
+  createdAt          DateTime        @default(now())
+  revisadoEn         DateTime?
+}
+
+model CredencialSolicitud {
+  id                 String           @id @default(cuid())
+  numeroDocumento    String
+  nombre             String
+  apellido           String
+  numeroMatricula    String
+  fechaMatriculacion DateTime?
+  tituloProfesional  String?
+  email              String
+  fotoUrl            String
+  estado             CredencialEstado @default(PENDIENTE)
+  motivoRechazo      String?
+  codigoVerificacion String           @unique
+  credencialUrl      String?
+  expiraEn           DateTime?
+  createdAt          DateTime         @default(now())
+  revisadoEn         DateTime?
+}
+
+model Especialidad {
+  id       String @id @default(cuid())
+  nombre   String @unique
+  orden    Int    @default(0)
+
+  tecnicos   TecnicoBolsa[]
+  busquedas  BusquedaLaboral[]
+}
+
+model TecnicoBolsa {
+  id              String       @id @default(cuid())
+  numeroMatricula String
+  nombre          String
+  telefono        String
+  email           String
+  localidad       String
+  descripcion     String
+  disponibilidad  String?
+  observaciones   String?
+  mostrarTelefono Boolean      @default(true)
+  mostrarEmail    Boolean      @default(true)
+  activo          Boolean      @default(true)
+  destacado       Boolean      @default(false)
+  especialidadId  String
+  especialidad    Especialidad @relation(fields: [especialidadId], references: [id])
+  createdAt       DateTime     @default(now())
+}
+
+enum ModalidadTrabajo {
+  PRESENCIAL
+  REMOTO
+  HIBRIDO
+}
+
+enum BusquedaEstado {
+  ACTIVA
+  CERRADA
+}
+
+model BusquedaLaboral {
+  id             String            @id @default(cuid())
+  titulo         String
+  empresa        String
+  descripcion    String
+  localidad      String
+  modalidad      ModalidadTrabajo  @default(PRESENCIAL)
+  contacto       String
+  estado         BusquedaEstado    @default(ACTIVA)
+  fechaCierre    DateTime?
+  especialidadId String?
+  especialidad   Especialidad?     @relation(fields: [especialidadId], references: [id])
+  createdAt      DateTime          @default(now())
+}
+
+model Suscriptor {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  createdAt DateTime @default(now())
+}
+
+enum DestinatarioEmail {
+  SUSCRIPTORES
+  MATRICULADOS
+  AMBOS
+}
+
+model EmailCampaign {
+  id               String            @id @default(cuid())
+  titulo           String
+  contenido        String
+  imagenUrl        String?
+  destinatarios    DestinatarioEmail
+  cantidadEnviados Int               @default(0)
+  cantidadFallidos Int               @default(0)
+  enviadoEn        DateTime          @default(now())
+}
