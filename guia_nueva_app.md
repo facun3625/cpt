@@ -14,17 +14,24 @@ pm2 list
 docker ps --format "table {{.Names}}\t{{.Ports}}"
 ```
 
-**Puertos actualmente en uso (actualizar al agregar cada app):**
-| Puerto | Quién lo usa        |
-|--------|---------------------|
-| 80/443 | Nginx               |
-| 3000   | profly-api          |
-| 3001   | profly-web          |
-| 3006   | arai                |
-| 5432   | sgo-db              |
-| 5433   | arai-db (fix)       |
-| 5435   | estudio_ferrer_db   |
-| 5436   | cravero-db          |
+**Puertos actualmente en uso (actualizado 2026-07-10, agregando cpt):**
+| Puerto | Quién lo usa                                                              |
+|--------|----------------------------------------------------------------------------|
+| 22     | SSH                                                                        |
+| 25     | Mail (postfix)                                                             |
+| 80/443 | Nginx                                                                      |
+| 3000   | profly-api                                                                 |
+| 3001   | profly-web                                                                 |
+| 3002–3010 | apps pm2 (arai, auro, cravero, ferrer, hablapraxia, mit, penalva, sgo) — sin mapeo puerto↔app confirmado, ver `pm2 list` |
+| 3011   | cpt                                                                        |
+| 5432   | sgo-db                                                                     |
+| 5433   | arai-db                                                                    |
+| 5434   | mit-db                                                                     |
+| 5435   | estudio_ferrer_db                                                          |
+| 5436   | cravero-db                                                                 |
+| 5437   | auro-db                                                                    |
+| 5438   | hablapraxia-db                                                             |
+| 5439   | cpt-db                                                                     |
 
 Elegí un puerto para la app (ej: `3007`) y uno para la DB (ej: `5437`).
 

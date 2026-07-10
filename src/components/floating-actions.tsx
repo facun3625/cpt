@@ -74,7 +74,7 @@ const actions = [
 
 export function FloatingActions() {
   return (
-    <div className="fixed right-0 top-1/2 z-40 hidden -translate-y-1/2 flex-col gap-1 sm:flex">
+    <div className="fixed right-0 top-1/2 z-40 flex -translate-y-1/2 flex-col gap-1">
       {actions.map((action) => (
         <Link
           key={action.label}
@@ -87,12 +87,12 @@ export function FloatingActions() {
               document.getElementById(action.href.slice(1))?.scrollIntoView({ behavior: "smooth" });
             }
           }}
-          className="group relative flex h-14 w-14 items-center justify-center rounded-l-xl bg-primary-700 text-white shadow-lg transition-colors hover:bg-accent-500"
+          className="group relative flex h-11 w-11 items-center justify-center rounded-l-xl bg-primary-700 text-white shadow-lg transition-colors hover:bg-accent-500 sm:h-14 sm:w-14"
         >
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true" className="sm:h-[22px] sm:w-[22px]">
             {action.icon}
           </svg>
-          <span className="pointer-events-none absolute right-full top-1/2 mr-2 -translate-y-1/2 translate-x-2 whitespace-nowrap rounded-lg bg-primary-700 px-3 py-2 text-xs font-semibold text-white opacity-0 shadow-lg transition-all duration-200 group-hover:translate-x-0 group-hover:opacity-100">
+          <span className="pointer-events-none absolute right-full top-1/2 mr-2 -translate-y-1/2 translate-x-2 hidden whitespace-nowrap rounded-lg bg-primary-700 px-3 py-2 text-xs font-semibold text-white opacity-0 shadow-lg transition-all duration-200 group-hover:translate-x-0 group-hover:opacity-100 sm:block">
             {action.label}
           </span>
         </Link>

@@ -226,6 +226,39 @@ export function SiteHeader({ sedes, instagramUrl }: { sedes: Sede[]; instagramUr
           className="fixed inset-x-0 bottom-0 overflow-y-auto border-t border-white/10 bg-ink-900 px-4 py-3 lg:hidden"
           style={{ top: "var(--site-header-h, 76px)" }}
         >
+          <div className="flex gap-2 border-b border-white/10 pb-3 pt-1">
+            <a
+              href={gestoUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-white/10 px-3 py-2 text-xs font-semibold text-white"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path
+                  d="M9 5h6M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2M9 5H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3M9 12h6M9 16h6"
+                  stroke="currentColor"
+                  strokeWidth="1.7"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              Acceso Gesto
+            </a>
+            <a
+              href="#contacto"
+              onClick={(e) => {
+                e.preventDefault();
+                setMobileOpen(false);
+                document.getElementById("contacto")?.scrollIntoView({ behavior: "smooth" });
+              }}
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-white/10 px-3 py-2 text-xs font-semibold text-white"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M4 6h16v12H4V6Zm0 0 8 7 8-7" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              Contacto
+            </a>
+          </div>
           {mainNav.map((item) => (
             <div key={item.label} className="border-b border-white/10 py-1 last:border-0">
               {item.children ? (
