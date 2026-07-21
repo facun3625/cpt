@@ -38,7 +38,23 @@ export function AdminSidebar({ email }: { email: string }) {
       </nav>
 
       <div className="shrink-0 border-t border-white/10 px-3 py-2.5">
-        <div className="flex items-center gap-2.5 rounded-lg px-3 py-1.5">
+        <Link
+          href="/"
+          className="flex items-center gap-2.5 rounded-lg px-3 py-1.5 text-[13px] font-medium text-white/70 transition-colors hover:bg-white/5 hover:text-white"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" className="shrink-0">
+            <path
+              d="M15 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h9m-4-4-4-4m0 0 4-4m-4 4h11"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+          Volver al sitio
+        </Link>
+
+        <div className="mt-1.5 flex items-center gap-2.5 rounded-lg px-3 py-1.5">
           <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary-700 text-[11px] font-semibold text-white">
             {email.slice(0, 2).toUpperCase()}
           </div>

@@ -210,3 +210,7 @@ export async function getSuscriptores() {
 export async function getEmailCampaigns() {
   return prisma.emailCampaign.findMany({ orderBy: { enviadoEn: "desc" } });
 }
+
+export async function getLinksInteres() {
+  return prisma.linkInteres.findMany({ orderBy: { orden: "asc" } });
+}

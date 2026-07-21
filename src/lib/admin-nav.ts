@@ -80,6 +80,12 @@ export const adminNav: AdminNavItem[] = [
     color: "violet",
   },
   {
+    label: "Links de interés",
+    href: "/admin/links-interes",
+    icon: "M9 12a3 3 0 0 0 4.5 2.6L17 11.1a3 3 0 1 0-4.2-4.2l-1.3 1.3M15 12a3 3 0 0 0-4.5-2.6L7 12.9a3 3 0 1 0 4.2 4.2l1.3-1.3",
+    color: "sky",
+  },
+  {
     label: "Email Marketing",
     href: "/admin/marketing",
     icon: "M4 6h16v12H4V6Zm0 0 8 7 8-7M8 15l-4 3m16-3 4 3",

@@ -4,7 +4,7 @@ export type NavItem = {
   label: string;
   href: string;
   external?: boolean;
-  children?: { label: string; href: string }[];
+  children?: { label: string; href: string; external?: boolean }[];
 };
 
 export const mainNav: NavItem[] = [

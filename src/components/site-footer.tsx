@@ -5,10 +5,10 @@ import type { Sede, ContactEmail } from "@/generated/prisma/client";
 
 export function SiteFooter({ sedes, emails }: { sedes: Sede[]; emails: ContactEmail[] }) {
   return (
-    <footer id="contacto" className="border-t border-surface-border bg-primary-900 text-white">
+    <footer id="contacto" className="border-t border-surface-border bg-primary-700 text-white">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:px-6 lg:grid-cols-4 lg:px-8">
         <div className="space-y-4 lg:col-span-1">
-          <Image src="/logo.png" alt="CPT Santa Fe" width={120} height={55} className="h-11 w-auto rounded" />
+          <Image src="/logo.png" alt="CPT Santa Fe" width={120} height={55} unoptimized className="h-11 w-auto rounded" />
           <p className="text-sm leading-relaxed text-primary-100">
             Colegio Profesional de Maestros Mayores de Obras y Técnicos de Santa Fe.
           </p>

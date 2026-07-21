@@ -5,6 +5,7 @@ import { HeroInfoCard } from "@/components/hero-info-card";
 import { HeroNewsSlider, type HeroSlide } from "@/components/hero-news-slider";
 import { NoticiasGrid } from "@/components/noticias-grid";
 import { NewsletterForm } from "@/components/newsletter-form";
+import { ChatCtaButton } from "@/components/chat-cta-button";
 import { getValorM2Status, getValorM2DisplayProps, getNoticias, getSliderNoticias } from "@/lib/site-info";
 import { formatCurrency } from "@/lib/format";
 
@@ -62,7 +63,7 @@ export default async function Home() {
     : [formatCurrency(valorM2.valorVigente)];
 
   const [noticias, sliderNoticias] = await Promise.all([getNoticias("NOTICIA"), getSliderNoticias()]);
-  const [destacadas, resto] = [noticias.slice(0, 3), noticias.slice(3, 18)];
+  const [destacadas, resto] = [noticias.slice(0, 3), noticias.slice(3, 13)];
   const heroSlides: HeroSlide[] = sliderNoticias.map((n) => ({
     title: n.titulo,
     excerpt: n.pretexto ?? "",
@@ -107,7 +108,30 @@ export default async function Home() {
       </section>
 
       <section className="bg-surface">
-        <div className="mx-auto max-w-7xl px-4 pb-16 pt-24 sm:px-6 sm:pt-44 lg:px-8 lg:pb-20">
+        <div className="mx-auto max-w-7xl px-4 pt-24 sm:px-6 sm:pt-44 lg:px-8">
+          <div className="flex flex-col items-center gap-5 rounded-2xl border border-primary-100 bg-white px-6 py-8 text-center shadow-sm sm:flex-row sm:justify-between sm:text-left">
+            <div className="flex items-center gap-4">
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-accent-500/10 text-accent-600">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M4 4h16v12H8l-4 4V4Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+                </svg>
+              </span>
+              <div>
+                <h2 className="text-lg font-semibold text-ink-900">¿Tenés una consulta? Preguntale a nuestro asistente virtual</h2>
+                <p className="mt-1 text-sm text-ink-600">
+                  Respuestas al instante sobre matriculación, aranceles, valor del m² y más, con el link a la página correspondiente.
+                </p>
+              </div>
+            </div>
+            <ChatCtaButton className="shrink-0 rounded-full bg-accent-500 px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-accent-600">
+              Preguntarle al asistente
+            </ChatCtaButton>
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-surface">
+        <div className="mx-auto max-w-7xl px-4 pb-16 pt-12 sm:px-6 lg:px-8 lg:pb-20">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
               <h2 className="text-2xl font-semibold text-ink-900 sm:text-3xl">Noticias y novedades</h2>

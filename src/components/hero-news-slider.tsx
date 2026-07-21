@@ -22,9 +22,11 @@ export function HeroNewsSlider({ slides }: { slides: HeroSlide[] }) {
   if (slides.length === 0) return null;
 
   const slide = slides[index];
+  const prev = () => setIndex((i) => (i - 1 + slides.length) % slides.length);
+  const next = () => setIndex((i) => (i + 1) % slides.length);
 
   return (
-    <>
+    <div className="relative mx-auto w-full max-w-3xl">
       <div key={index} className="flex flex-col items-center">
         <h1 className="animate-fade-in-up text-2xl font-semibold leading-tight text-white sm:text-4xl">
           {slide.title}
@@ -45,20 +47,29 @@ export function HeroNewsSlider({ slides }: { slides: HeroSlide[] }) {
       </div>
 
       {slides.length > 1 && (
-        <div className="mt-8 flex items-center justify-center gap-2">
-          {slides.map((s, i) => (
-            <button
-              key={s.href}
-              type="button"
-              aria-label={`Ir a la noticia ${i + 1}`}
-              onClick={() => setIndex(i)}
-              className={`h-2 rounded-full transition-all duration-300 ${
-                i === index ? "w-6 bg-accent-500" : "w-2 bg-white/40 hover:bg-white/70"
-              }`}
-            />
-          ))}
-        </div>
+        <>
+          <button
+            type="button"
+            aria-label="Noticia anterior"
+            onClick={prev}
+            className="absolute -left-2 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/25 text-white transition-colors hover:bg-white/10 sm:-left-14"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M15 6l-6 6 6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            aria-label="Noticia siguiente"
+            onClick={next}
+            className="absolute -right-2 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/25 text-white transition-colors hover:bg-white/10 sm:-right-14"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+        </>
       )}
-    </>
+    </div>
   );
 }

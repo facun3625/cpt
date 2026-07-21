@@ -280,3 +280,10 @@ model EmailCampaign {
   cantidadFallidos Int               @default(0)
   enviadoEn        DateTime          @default(now())
 }
+
+model LinkInteres {
+  id     String @id @default(cuid())
+  titulo String
+  url    String
+  orden  Int    @default(0)
+}

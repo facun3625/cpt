@@ -4,13 +4,36 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { gestoUrl, mainNav } from "@/lib/nav";
+import { GlobalSearch } from "@/components/global-search";
 import type { Sede } from "@/generated/prisma/client";
 
-export function SiteHeader({ sedes, instagramUrl }: { sedes: Sede[]; instagramUrl: string | null }) {
+export function SiteHeader({
+  sedes,
+  instagramUrl,
+  isAdmin,
+  linksInteres = [],
+}: {
+  sedes: Sede[];
+  instagramUrl: string | null;
+  isAdmin?: boolean;
+  linksInteres?: { titulo: string; url: string }[];
+}) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
   const [scrolled, setScrolled] = useState(false);
   const headerRef = useRef<HTMLElement>(null);
+
+  const nav = mainNav.map((item) =>
+    item.label === "Serv. a Matriculados"
+      ? {
+          ...item,
+          children: [
+            ...(item.children ?? []),
+            ...linksInteres.map((l) => ({ label: l.titulo, href: l.url, external: true })),
+          ],
+        }
+      : item,
+  );
 
   useLayoutEffect(() => {
     const el = headerRef.current;
@@ -44,22 +67,22 @@ export function SiteHeader({ sedes, instagramUrl }: { sedes: Sede[]; instagramUr
     <>
     <header
       ref={headerRef}
-      className={`fixed inset-x-0 top-0 z-50 border-b border-white/10 bg-ink-900 transition-shadow duration-300 ${
+      className={`fixed inset-x-0 top-0 z-50 border-b border-white/10 bg-primary-700 transition-shadow duration-300 ${
         scrolled ? "shadow-md" : ""
       }`}
     >
       <div
-        className={`hidden overflow-hidden border-b border-white/10 bg-primary-900 transition-[max-height,opacity] duration-300 lg:block ${
-          scrolled ? "max-h-0 opacity-0" : "max-h-20 opacity-100"
+        className={`overflow-hidden border-b border-white/10 bg-ink-900 transition-[max-height,opacity] duration-300 max-h-20 opacity-100 ${
+          scrolled ? "lg:max-h-0 lg:opacity-0" : "lg:max-h-20 lg:opacity-100"
         }`}
       >
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-4 py-3 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-6">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-x-6 gap-y-2 px-4 py-2 sm:px-6 lg:flex-nowrap lg:justify-between lg:py-3 lg:px-8">
+          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
           <a
             href={gestoUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1.5 text-xs font-semibold text-white transition-colors hover:text-white/80"
+            className="flex items-center gap-1.5 rounded-full bg-primary-700 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-primary-600"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path
@@ -91,8 +114,26 @@ export function SiteHeader({ sedes, instagramUrl }: { sedes: Sede[]; instagramUr
             </svg>
             Contacto
           </a>
+          <GlobalSearch />
+          {isAdmin && (
+            <Link
+              href="/admin/dashboard"
+              className="flex items-center gap-1.5 rounded-full bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-emerald-500"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path
+                  d="M4 12 12 4l8 8M6 10v10h12V10"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              Panel de administración
+            </Link>
+          )}
           </div>
-          <div className="flex items-center gap-6">
+          <div className="hidden flex-wrap items-center justify-center gap-x-6 gap-y-2 lg:flex">
           {sedes.map((sede) => (
             <a
               key={sede.id}
@@ -129,9 +170,16 @@ export function SiteHeader({ sedes, instagramUrl }: { sedes: Sede[]; instagramUr
         </div>
       </div>
 
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:hidden">
+      <div className="mx-auto max-w-7xl px-4 pt-2 text-center sm:px-6 lg:hidden">
+        <span className="block text-[10px] font-semibold uppercase leading-snug tracking-wide text-white">
+          Colegio Profesional de Maestros Mayores de Obras y Técnicos de la Arquitectura, Industria e Ingeniería de la
+          Provincia de Santa Fe
+        </span>
+      </div>
+
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 pb-3 pt-1.5 sm:px-6 lg:hidden">
         <Link href="/" className="flex items-center gap-2">
-          <Image src="/logo.png" alt="CPT Santa Fe" width={130} height={60} priority className="h-14 w-auto rounded" />
+          <Image src="/logo.png" alt="CPT Santa Fe" width={130} height={60} priority unoptimized className="h-14 w-auto rounded" />
         </Link>
         <button
           type="button"
@@ -172,10 +220,11 @@ export function SiteHeader({ sedes, instagramUrl }: { sedes: Sede[]; instagramUr
               width={130}
               height={60}
               priority
-              className={`w-auto rounded transition-[height] duration-300 ${scrolled ? "h-10" : "h-14"}`}
+              unoptimized
+              className={`w-auto rounded transition-[height] duration-300 ${scrolled ? "h-14" : "h-20"}`}
             />
           </Link>
-          {mainNav.map((item, index) => (
+          {nav.map((item, index) => (
             <div
               key={item.label}
               className="relative flex items-center"
@@ -209,6 +258,8 @@ export function SiteHeader({ sedes, instagramUrl }: { sedes: Sede[]; instagramUr
                     <Link
                       key={child.href}
                       href={child.href}
+                      target={child.external ? "_blank" : undefined}
+                      rel={child.external ? "noopener noreferrer" : undefined}
                       className="block px-4 py-2 text-sm text-ink-600 hover:bg-primary-50 hover:text-primary-700"
                     >
                       {child.label}
@@ -223,7 +274,7 @@ export function SiteHeader({ sedes, instagramUrl }: { sedes: Sede[]; instagramUr
 
       {mobileOpen && (
         <nav
-          className="fixed inset-x-0 bottom-0 overflow-y-auto border-t border-white/10 bg-ink-900 px-4 py-3 lg:hidden"
+          className="fixed inset-x-0 bottom-0 overflow-y-auto border-t border-white/10 bg-primary-700 px-4 py-3 lg:hidden"
           style={{ top: "var(--site-header-h, 76px)" }}
         >
           <div className="flex gap-2 border-b border-white/10 pb-3 pt-1">
@@ -259,7 +310,7 @@ export function SiteHeader({ sedes, instagramUrl }: { sedes: Sede[]; instagramUr
               Contacto
             </a>
           </div>
-          {mainNav.map((item) => (
+          {nav.map((item) => (
             <div key={item.label} className="border-b border-white/10 py-1 last:border-0">
               {item.children ? (
                 <button
@@ -302,6 +353,8 @@ export function SiteHeader({ sedes, instagramUrl }: { sedes: Sede[]; instagramUr
                         <Link
                           key={child.href}
                           href={child.href}
+                          target={child.external ? "_blank" : undefined}
+                          rel={child.external ? "noopener noreferrer" : undefined}
                           className="py-1.5 text-sm text-white/70"
                           onClick={() => setMobileOpen(false)}
                         >
@@ -317,12 +370,6 @@ export function SiteHeader({ sedes, instagramUrl }: { sedes: Sede[]; instagramUr
         </nav>
       )}
     </header>
-    <script
-      dangerouslySetInnerHTML={{
-        __html:
-          "(function(){var h=document.currentScript.previousElementSibling;if(h){document.documentElement.style.setProperty('--site-header-h',h.offsetHeight+'px');}})();",
-      }}
-    />
     </>
   );
 }
