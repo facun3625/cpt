@@ -118,11 +118,9 @@ export async function regenerarCredencial(id: string) {
   redirect(`${PATH}/${id}?ok=1`);
 }
 
-export async function reenviarEnlace(id: string) {
-  await verifyAdminSession();
-
+async function enviarEnlacePorEmail(id: string) {
   const solicitud = await prisma.credencialSolicitud.findUnique({ where: { id } });
-  if (!solicitud || solicitud.estado !== "APROBADO" || !solicitud.credencialUrl) return;
+  if (!solicitud || solicitud.estado !== "APROBADO" || !solicitud.credencialUrl) return false;
 
   const siteUrl = process.env.SITE_URL || "http://localhost:3000";
 
@@ -132,8 +130,23 @@ export async function reenviarEnlace(id: string) {
     text: `Hola ${solicitud.nombre},\n\nTe reenviamos el enlace de tu credencial digital:\n${siteUrl}${solicitud.credencialUrl}\n\nSaludos,\nCPT Santa Fe`,
   });
 
+  return true;
+}
+
+export async function reenviarEnlace(id: string) {
+  await verifyAdminSession();
+  await enviarEnlacePorEmail(id);
+
   revalidatePath("/", "layout");
   redirect(`${PATH}/${id}?ok=1`);
+}
+
+export async function reenviarEnlaceDesdeListado(id: string) {
+  await verifyAdminSession();
+  const enviado = await enviarEnlacePorEmail(id);
+
+  revalidatePath("/", "layout");
+  return { enviado };
 }
 
 export async function revocarCredencial(id: string) {

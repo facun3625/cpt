@@ -2,7 +2,7 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { FloatingActions } from "@/components/floating-actions";
 import { ChatWidget } from "@/components/chat-widget";
-import { getSedes, getContactEmails, getSiteSettings, getLinksInteres } from "@/lib/site-info";
+import { getSedes, getContactEmails, getSiteSettings } from "@/lib/site-info";
 import { getSession } from "@/lib/session";
 
 export default async function SiteLayout({
@@ -10,23 +10,17 @@ export default async function SiteLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [sedes, emails, settings, session, linksInteres] = await Promise.all([
+  const [sedes, emails, settings, session] = await Promise.all([
     getSedes(),
     getContactEmails(),
     getSiteSettings(),
     getSession(),
-    getLinksInteres(),
   ]);
   const headerSedes = sedes.filter((s) => s.mostrarEnHeader).slice(0, 2);
 
   return (
     <>
-      <SiteHeader
-        sedes={headerSedes}
-        instagramUrl={settings.instagramUrl}
-        isAdmin={Boolean(session?.adminId)}
-        linksInteres={linksInteres}
-      />
+      <SiteHeader sedes={headerSedes} instagramUrl={settings.instagramUrl} isAdmin={Boolean(session?.adminId)} />
       <main className="flex-1">{children}</main>
       <SiteFooter sedes={sedes} emails={emails} />
       <div className="h-16 sm:hidden" aria-hidden="true" />

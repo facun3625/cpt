@@ -11,29 +11,16 @@ export function SiteHeader({
   sedes,
   instagramUrl,
   isAdmin,
-  linksInteres = [],
 }: {
   sedes: Sede[];
   instagramUrl: string | null;
   isAdmin?: boolean;
-  linksInteres?: { titulo: string; url: string }[];
 }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
   const [scrolled, setScrolled] = useState(false);
   const headerRef = useRef<HTMLElement>(null);
 
-  const nav = mainNav.map((item) =>
-    item.label === "Serv. a Matriculados"
-      ? {
-          ...item,
-          children: [
-            ...(item.children ?? []),
-            ...linksInteres.map((l) => ({ label: l.titulo, href: l.url, external: true })),
-          ],
-        }
-      : item,
-  );
 
   useLayoutEffect(() => {
     const el = headerRef.current;
@@ -224,7 +211,7 @@ export function SiteHeader({
               className={`w-auto rounded transition-[height] duration-300 ${scrolled ? "h-14" : "h-20"}`}
             />
           </Link>
-          {nav.map((item, index) => (
+          {mainNav.map((item, index) => (
             <div
               key={item.label}
               className="relative flex items-center"
@@ -310,7 +297,7 @@ export function SiteHeader({
               Contacto
             </a>
           </div>
-          {nav.map((item) => (
+          {mainNav.map((item) => (
             <div key={item.label} className="border-b border-white/10 py-1 last:border-0">
               {item.children ? (
                 <button

@@ -30,22 +30,31 @@ export async function uploadMatriculados(_prevState: UploadState, formData: Form
 
   const numerosMatricula = rows.map((r) => r.numeroMatricula);
 
+  // Fechas de matriculación ya registradas: sobreviven aunque la matrícula
+  // desaparezca de un CSV (p. ej. suspensión) y reaparezca en una carga posterior.
+  const registrosFecha = await prisma.matriculaFechaRegistro.findMany({
+    where: { numeroMatricula: { in: numerosMatricula } },
+  });
+  const fechaPorMatricula = new Map(registrosFecha.map((r) => [r.numeroMatricula, r.fechaMatriculacion]));
+
   await prisma.$transaction([
     // Elimina a quienes ya no figuran en el archivo nuevo
     prisma.matriculadoHabilitado.deleteMany({ where: { numeroMatricula: { notIn: numerosMatricula } } }),
-    // Upsert por número de matrícula: preserva fechaMatriculacion cargada a mano en el panel
-    ...rows.map((row) =>
-      prisma.matriculadoHabilitado.upsert({
+    // Upsert por número de matrícula: repone fechaMatriculacion desde el registro paralelo si existe
+    ...rows.map((row) => {
+      const fechaGuardada = fechaPorMatricula.get(row.numeroMatricula);
+      return prisma.matriculadoHabilitado.upsert({
         where: { numeroMatricula: row.numeroMatricula },
         update: {
           numeroDocumento: row.numeroDocumento,
           nombre: row.nombre,
           apellido: row.apellido,
           email: row.email || null,
+          ...(fechaGuardada ? { fechaMatriculacion: fechaGuardada } : {}),
         },
-        create: { ...row, email: row.email || null },
-      }),
-    ),
+        create: { ...row, email: row.email || null, fechaMatriculacion: fechaGuardada ?? null },
+      });
+    }),
     prisma.matriculadosUpload.upsert({
       where: { id: "matriculados" },
       update: { uploadedAt: new Date(), cantidad: rows.length, nombreArchivo: file.name },
@@ -61,10 +70,20 @@ export async function updateFechaMatriculacion(id: string, formData: FormData) {
   await verifyAdminSession();
   const raw = String(formData.get("fechaMatriculacion") ?? "").trim();
 
-  await prisma.matriculadoHabilitado.update({
+  const matriculado = await prisma.matriculadoHabilitado.update({
     where: { id },
     data: { fechaMatriculacion: raw ? new Date(`${raw}T00:00:00Z`) : null },
   });
+
+  if (matriculado.fechaMatriculacion) {
+    await prisma.matriculaFechaRegistro.upsert({
+      where: { numeroMatricula: matriculado.numeroMatricula },
+      update: { fechaMatriculacion: matriculado.fechaMatriculacion },
+      create: { numeroMatricula: matriculado.numeroMatricula, fechaMatriculacion: matriculado.fechaMatriculacion },
+    });
+  } else {
+    await prisma.matriculaFechaRegistro.deleteMany({ where: { numeroMatricula: matriculado.numeroMatricula } });
+  }
 
   revalidatePath("/", "layout");
   redirect(`${PATH}?ok=1`);

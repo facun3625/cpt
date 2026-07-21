@@ -121,6 +121,13 @@ model MatriculadoHabilitado {
   @@index([numeroDocumento])
 }
 
+model MatriculaFechaRegistro {
+  id                 String   @id @default(cuid())
+  numeroMatricula    String   @unique
+  fechaMatriculacion DateTime
+  updatedAt          DateTime @updatedAt
+}
+
 model MatriculadosUpload {
   id         String   @id @default("matriculados")
   uploadedAt DateTime

@@ -1,13 +1,7 @@
 import Link from "next/link";
-import { getEmailCampaigns, getSuscriptores } from "@/lib/site-info";
+import { getEmailCampaigns, getSuscriptores, getSedes, getContactEmails, getSiteSettings } from "@/lib/site-info";
 import { prisma } from "@/lib/prisma";
-import { enviarCampania } from "./actions";
-
-const inputClass =
-  "mt-1 w-full rounded-lg border border-surface-border px-3 py-2 text-sm outline-none focus:border-primary-400";
-const textareaClass = `${inputClass} resize-y`;
-const fileInputClass =
-  "mt-2 block text-sm text-ink-600 file:mr-3 file:cursor-pointer file:rounded-full file:border-0 file:bg-primary-700 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-primary-900";
+import { MarketingForm } from "./marketing-form";
 
 const dateFormatter = new Intl.DateTimeFormat("es-AR", {
   day: "2-digit",
@@ -24,14 +18,19 @@ const DESTINATARIOS_LABEL: Record<string, string> = {
 };
 
 export default async function MarketingAdminPage() {
-  const [campanias, suscriptores, matriculadosConEmail] = await Promise.all([
+  const [campanias, suscriptores, matriculadosConEmail, sedes, contactEmails, siteSettings] = await Promise.all([
     getEmailCampaigns(),
     getSuscriptores(),
     prisma.matriculadoHabilitado.count({ where: { email: { not: null } } }),
+    getSedes(),
+    getContactEmails(),
+    getSiteSettings(),
   ]);
 
+  const siteUrl = process.env.SITE_URL || "http://localhost:3000";
+
   return (
-    <div className="max-w-3xl px-8 py-8">
+    <div className="max-w-5xl px-8 py-8">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-semibold text-ink-900">Email Marketing</h1>
@@ -47,40 +46,17 @@ export default async function MarketingAdminPage() {
         </Link>
       </div>
 
-      <form action={enviarCampania} className="mt-6 space-y-5 rounded-xl border border-surface-border bg-white p-6">
-        <div>
-          <label className="text-xs font-medium text-ink-500">Título / asunto</label>
-          <input name="titulo" required className={inputClass} />
-        </div>
-        <div>
-          <label className="text-xs font-medium text-ink-500">Texto</label>
-          <textarea name="contenido" required rows={6} className={textareaClass} />
-        </div>
-        <div>
-          <label className="text-xs font-medium text-ink-500">Imagen (opcional)</label>
-          <input name="imagen" type="file" accept="image/jpeg,image/png" className={fileInputClass} />
-        </div>
-        <div>
-          <label className="text-xs font-medium text-ink-500">Destinatarios</label>
-          <select name="destinatarios" defaultValue="SUSCRIPTORES" className={inputClass}>
-            <option value="SUSCRIPTORES">Suscriptores del newsletter ({suscriptores.length})</option>
-            <option value="MATRICULADOS">Matriculados con email cargado ({matriculadosConEmail})</option>
-            <option value="AMBOS">Ambos</option>
-          </select>
-        </div>
-
-        <p className="text-xs text-ink-400">
-          El envío se hace en el momento y puede tardar unos minutos si la lista es grande — no cierres esta página
-          hasta que redirija.
-        </p>
-
-        <button
-          type="submit"
-          className="rounded-full bg-primary-700 px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-900"
-        >
-          Enviar campaña
-        </button>
-      </form>
+      <MarketingForm
+        suscriptoresCount={suscriptores.length}
+        matriculadosCount={matriculadosConEmail}
+        siteUrl={siteUrl}
+        footer={{
+          direccion: sedes[0]?.direccion ?? null,
+          telefono: sedes[0]?.telefono ?? null,
+          email: contactEmails[0]?.value ?? null,
+          instagramUrl: siteSettings.instagramUrl ?? null,
+        }}
+      />
 
       <h2 className="mt-10 text-sm font-semibold text-ink-900">Historial de envíos</h2>
       <div className="mt-4 space-y-3">
