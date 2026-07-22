@@ -8,6 +8,7 @@ import { saveUploadedMarketingImage } from "@/lib/upload";
 import { sendMail } from "@/lib/mailer";
 import { construirEmailHtml } from "@/lib/email-template";
 import { getSedes, getContactEmails, getSiteSettings } from "@/lib/site-info";
+import { logActivity } from "@/lib/activity-log";
 
 const PATH = "/admin/marketing";
 const CONCURRENCIA = 5;
@@ -32,7 +33,7 @@ async function enviarATodos(emails: string[], subject: string, html: string, tex
 }
 
 export async function enviarCampania(formData: FormData) {
-  await verifyAdminSession();
+  const session = await verifyAdminSession();
 
   const titulo = String(formData.get("titulo") ?? "").trim();
   const contenido = String(formData.get("contenido") ?? "").trim();
@@ -97,6 +98,12 @@ export async function enviarCampania(formData: FormData) {
       cantidadFallidos: fallidos,
     },
   });
+
+  await logActivity(
+    session.email,
+    "Envió una campaña de email",
+    `"${titulo}" — ${enviados} enviados${fallidos > 0 ? `, ${fallidos} fallidos` : ""}`,
+  );
 
   revalidatePath("/", "layout");
   redirect(`${PATH}?ok=1`);

@@ -97,4 +97,10 @@ export const adminNav: AdminNavItem[] = [
     icon: "M4 6h16v12H4V6Zm0 0 8 7 8-7",
     color: "teal",
   },
+  {
+    label: "Usuarios",
+    href: "/admin/usuarios",
+    icon: "M9 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm-6 9c0-2.8 2.7-5 6-5s6 2.2 6 5M17 11a3 3 0 1 0 0-6M20 20c0-2.3-1.8-4.2-4-4.8",
+    color: "violet",
+  },
 ];

@@ -5,13 +5,14 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { verifyAdminSession } from "@/lib/admin-dal";
 import { parseMatriculadosCsv } from "@/lib/csv";
+import { logActivity } from "@/lib/activity-log";
 
 const PATH = "/admin/matriculados";
 
 export type UploadState = { error?: string } | undefined;
 
 export async function uploadMatriculados(_prevState: UploadState, formData: FormData): Promise<UploadState> {
-  await verifyAdminSession();
+  const session = await verifyAdminSession();
 
   const file = formData.get("archivo");
   if (!(file instanceof File) || file.size === 0) {
@@ -61,6 +62,8 @@ export async function uploadMatriculados(_prevState: UploadState, formData: Form
       create: { id: "matriculados", uploadedAt: new Date(), cantidad: rows.length, nombreArchivo: file.name },
     }),
   ]);
+
+  await logActivity(session.email, "Subió una lista de matriculados (CSV)", `${rows.length} matriculados — ${file.name}`);
 
   revalidatePath("/", "layout");
   redirect(`${PATH}?ok=1`);

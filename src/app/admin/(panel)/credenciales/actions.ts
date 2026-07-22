@@ -8,6 +8,7 @@ import { getFirmasCredencial } from "@/lib/site-info";
 import { generateCredencialPdf } from "@/lib/credencial-pdf";
 import { saveCredencialPdf } from "@/lib/upload";
 import { sendMail } from "@/lib/mailer";
+import { logActivity } from "@/lib/activity-log";
 
 const PATH = "/admin/credenciales";
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
@@ -71,7 +72,7 @@ async function emitirCredencial(id: string) {
 }
 
 export async function aprobarSolicitud(id: string) {
-  await verifyAdminSession();
+  const session = await verifyAdminSession();
 
   const result = await emitirCredencial(id);
   if (!result) return;
@@ -83,12 +84,18 @@ export async function aprobarSolicitud(id: string) {
     text: `Hola ${solicitud.nombre},\n\nTu solicitud de credencial digital fue aprobada.\n\nPodés descargarla desde este enlace (válido por 30 días):\n${siteUrl}${credencialUrl}\n\nSaludos,\nCPT Santa Fe`,
   });
 
+  await logActivity(
+    session.email,
+    "Aprobó una credencial digital",
+    `${solicitud.apellido}, ${solicitud.nombre} — Matrícula ${solicitud.numeroMatricula}`,
+  );
+
   revalidatePath("/", "layout");
   redirect(`${PATH}/${id}?ok=1`);
 }
 
 export async function rechazarSolicitud(id: string, formData: FormData) {
-  await verifyAdminSession();
+  const session = await verifyAdminSession();
 
   const motivoRechazo = String(formData.get("motivoRechazo") ?? "").trim();
   if (!motivoRechazo) return;
@@ -104,15 +111,27 @@ export async function rechazarSolicitud(id: string, formData: FormData) {
     text: `Hola ${solicitud.nombre},\n\nTu solicitud de credencial digital fue rechazada.\n\nMotivo: ${motivoRechazo}\n\nAnte cualquier consulta, contactate con la secretaría del Colegio.\n\nSaludos,\nCPT Santa Fe`,
   });
 
+  await logActivity(
+    session.email,
+    "Rechazó una credencial digital",
+    `${solicitud.apellido}, ${solicitud.nombre} — Matrícula ${solicitud.numeroMatricula} — Motivo: ${motivoRechazo}`,
+  );
+
   revalidatePath("/", "layout");
   redirect(`${PATH}/${id}?ok=1`);
 }
 
 export async function regenerarCredencial(id: string) {
-  await verifyAdminSession();
+  const session = await verifyAdminSession();
 
   const result = await emitirCredencial(id);
   if (!result) return;
+
+  await logActivity(
+    session.email,
+    "Regeneró una credencial digital",
+    `${result.solicitud.apellido}, ${result.solicitud.nombre} — Matrícula ${result.solicitud.numeroMatricula}`,
+  );
 
   revalidatePath("/", "layout");
   redirect(`${PATH}/${id}?ok=1`);
@@ -150,12 +169,18 @@ export async function reenviarEnlaceDesdeListado(id: string) {
 }
 
 export async function revocarCredencial(id: string) {
-  await verifyAdminSession();
+  const session = await verifyAdminSession();
 
-  await prisma.credencialSolicitud.update({
+  const solicitud = await prisma.credencialSolicitud.update({
     where: { id },
     data: { estado: "REVOCADO", revisadoEn: new Date() },
   });
+
+  await logActivity(
+    session.email,
+    "Revocó una credencial digital",
+    `${solicitud.apellido}, ${solicitud.nombre} — Matrícula ${solicitud.numeroMatricula}`,
+  );
 
   revalidatePath("/", "layout");
   redirect(`${PATH}/${id}?ok=1`);

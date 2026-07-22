@@ -8,6 +8,7 @@ import { getFirmasCertificado, getSedes } from "@/lib/site-info";
 import { generateCertificadoPdf } from "@/lib/certificado-pdf";
 import { saveCertificadoPdf } from "@/lib/upload";
 import { sendMail } from "@/lib/mailer";
+import { logActivity } from "@/lib/activity-log";
 
 const PATH = "/admin/certificados";
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
@@ -49,7 +50,7 @@ export async function updateSolicitud(id: string, formData: FormData) {
 }
 
 export async function aprobarSolicitud(id: string) {
-  await verifyAdminSession();
+  const session = await verifyAdminSession();
 
   const solicitud = await prisma.certificadoSolicitud.findUnique({ where: { id } });
   if (!solicitud) return;
@@ -88,12 +89,18 @@ export async function aprobarSolicitud(id: string) {
     text: `Hola ${solicitud.nombre},\n\nTu solicitud de certificado de matriculación fue aprobada.\n\nPodés descargarlo desde este enlace (válido por 30 días):\n${siteUrl}${pdfUrl}\n\nSaludos,\nCPT Santa Fe`,
   });
 
+  await logActivity(
+    session.email,
+    "Aprobó un certificado de matriculación",
+    `${solicitud.apellido}, ${solicitud.nombre} — Matrícula ${solicitud.numeroMatricula}`,
+  );
+
   revalidatePath("/", "layout");
   redirect(`${PATH}/${id}?ok=1`);
 }
 
 export async function rechazarSolicitud(id: string, formData: FormData) {
-  await verifyAdminSession();
+  const session = await verifyAdminSession();
 
   const motivoRechazo = String(formData.get("motivoRechazo") ?? "").trim();
   if (!motivoRechazo) return;
@@ -108,6 +115,12 @@ export async function rechazarSolicitud(id: string, formData: FormData) {
     subject: "Tu solicitud de certificado de matriculación fue rechazada — CPT Santa Fe",
     text: `Hola ${solicitud.nombre},\n\nTu solicitud de certificado de matriculación fue rechazada.\n\nMotivo: ${motivoRechazo}\n\nAnte cualquier consulta, contactate con la secretaría del Colegio.\n\nSaludos,\nCPT Santa Fe`,
   });
+
+  await logActivity(
+    session.email,
+    "Rechazó un certificado de matriculación",
+    `${solicitud.apellido}, ${solicitud.nombre} — Matrícula ${solicitud.numeroMatricula} — Motivo: ${motivoRechazo}`,
+  );
 
   revalidatePath("/", "layout");
   redirect(`${PATH}/${id}?ok=1`);

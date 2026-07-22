@@ -214,3 +214,11 @@ export async function getEmailCampaigns() {
 export async function getLinksInteres() {
   return prisma.linkInteres.findMany({ orderBy: { orden: "asc" } });
 }
+
+export async function getAdminUsers() {
+  return prisma.adminUser.findMany({ orderBy: { createdAt: "asc" }, select: { id: true, email: true, createdAt: true } });
+}
+
+export async function getActivityLog(limit = 50) {
+  return prisma.activityLog.findMany({ orderBy: { createdAt: "desc" }, take: limit });
+}

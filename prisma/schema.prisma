@@ -19,6 +19,16 @@ model AdminUser {
   createdAt    DateTime @default(now())
 }
 
+model ActivityLog {
+  id         String   @id @default(cuid())
+  adminEmail String
+  accion     String
+  detalle    String?
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
+}
+
 model Sede {
   id               String   @id @default(cuid())
   nombre           String
