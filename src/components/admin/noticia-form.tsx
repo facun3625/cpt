@@ -1,4 +1,5 @@
 import { createNoticia, updateNoticia, addGaleriaImagen, deleteGaleriaImagen } from "@/lib/noticia-actions";
+import { ImagenDestacadaInput } from "@/components/admin/imagen-destacada-input";
 import type { NoticiaTipo } from "@/generated/prisma/client";
 
 type NoticiaWithGaleria = {
@@ -60,14 +61,7 @@ export function NoticiaForm({
         </div>
 
         <div className="space-y-5">
-          <div>
-            <label className="text-xs font-medium text-ink-500">Imagen destacada</label>
-            {noticia?.imagenDestacada && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={noticia.imagenDestacada} alt="" className="mt-2 h-40 w-full rounded-lg object-cover" />
-            )}
-            <input name="imagenDestacada" type="file" accept="image/*" className={fileInputClass} />
-          </div>
+          <ImagenDestacadaInput name="imagenDestacada" initialUrl={noticia?.imagenDestacada ?? null} />
           <label className="flex items-center gap-2 text-sm text-ink-600">
             <input
               type="checkbox"
