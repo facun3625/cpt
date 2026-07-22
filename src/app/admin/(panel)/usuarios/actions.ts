@@ -38,6 +38,26 @@ export async function crearAdmin(_prevState: CrearAdminState, formData: FormData
   redirect(`${PATH}?ok=1`);
 }
 
+export async function cambiarPassword(id: string, formData: FormData) {
+  const session = await verifyAdminSession();
+
+  const password = String(formData.get("password") ?? "");
+  if (password.length < 8) return;
+
+  const objetivo = await prisma.adminUser.findUnique({ where: { id } });
+  if (!objetivo) return;
+
+  const passwordHash = await bcrypt.hash(password, 10);
+  await prisma.adminUser.update({ where: { id }, data: { passwordHash } });
+
+  const accion =
+    objetivo.id === session.adminId ? "Cambió su propia contraseña" : "Cambió la contraseña de otro administrador";
+  await logActivity(session.email, accion, objetivo.email);
+
+  revalidatePath("/", "layout");
+  redirect(`${PATH}?ok=1`);
+}
+
 export async function eliminarAdmin(id: string) {
   const session = await verifyAdminSession();
 
