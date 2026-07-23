@@ -52,8 +52,10 @@ async function emitirCredencial(id: string) {
   const pdfBuffer = await generateCredencialPdf({
     nombre: solicitud.nombre,
     apellido: solicitud.apellido,
+    numeroDocumento: solicitud.numeroDocumento,
     numeroMatricula: solicitud.numeroMatricula,
     tituloProfesional: solicitud.tituloProfesional,
+    fechaMatriculacion: solicitud.fechaMatriculacion,
     fotoUrl: solicitud.fotoUrl,
     codigoVerificacion: solicitud.codigoVerificacion,
     verificationUrl,

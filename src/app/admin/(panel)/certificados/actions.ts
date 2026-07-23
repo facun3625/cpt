@@ -25,6 +25,7 @@ export async function updateSolicitud(id: string, formData: FormData) {
   const fechaRaw = String(formData.get("fechaMatriculacion") ?? "").trim();
   const tituloProfesional = String(formData.get("tituloProfesional") ?? "").trim() || null;
   const domicilio = String(formData.get("domicilio") ?? "").trim() || null;
+  const ciudad = String(formData.get("ciudad") ?? "").trim() || null;
   const notasAdicionales = String(formData.get("notasAdicionales") ?? "").trim() || null;
 
   if (!nombre || !apellido || !numeroMatricula || !numeroDocumento || !lugarPresentacion) return;
@@ -41,6 +42,7 @@ export async function updateSolicitud(id: string, formData: FormData) {
       fechaMatriculacion: fechaRaw ? new Date(`${fechaRaw}T00:00:00Z`) : null,
       tituloProfesional,
       domicilio,
+      ciudad,
       notasAdicionales,
     },
   });
@@ -49,8 +51,17 @@ export async function updateSolicitud(id: string, formData: FormData) {
   redirect(`${PATH}/${id}?ok=1`);
 }
 
-export async function aprobarSolicitud(id: string) {
+export async function aprobarSolicitud(id: string, formData: FormData) {
   const session = await verifyAdminSession();
+
+  const modelo = formData.get("modelo") === "CUOTAS" ? "CUOTAS" : "ANUAL";
+  const cantidadCuotas = modelo === "CUOTAS" ? Number(formData.get("cantidadCuotas")) : null;
+  const cuotaVencimientoMes = modelo === "CUOTAS" ? Number(formData.get("cuotaVencimientoMes")) : null;
+  const cuotaVencimientoAnio = modelo === "CUOTAS" ? Number(formData.get("cuotaVencimientoAnio")) : null;
+
+  if (modelo === "CUOTAS" && (!cantidadCuotas || !cuotaVencimientoMes || !cuotaVencimientoAnio)) {
+    return;
+  }
 
   const solicitud = await prisma.certificadoSolicitud.findUnique({ where: { id } });
   if (!solicitud) return;
@@ -64,13 +75,16 @@ export async function aprobarSolicitud(id: string) {
     apellido: solicitud.apellido,
     numeroDocumento: solicitud.numeroDocumento,
     numeroMatricula: solicitud.numeroMatricula,
-    fechaMatriculacion: solicitud.fechaMatriculacion,
     tituloProfesional: solicitud.tituloProfesional,
     domicilio: solicitud.domicilio,
-    lugarPresentacion: solicitud.lugarPresentacion,
+    ciudad: solicitud.ciudad,
     notasAdicionales: solicitud.notasAdicionales,
     codigoVerificacion: solicitud.codigoVerificacion,
     verificationUrl,
+    modelo,
+    cantidadCuotas,
+    cuotaVencimientoMes,
+    cuotaVencimientoAnio,
     firmas: firmas.map((f) => ({ nombre: f.nombre, titulo: f.titulo, firmaUrl: f.firmaUrl })),
     sede: sedes[0] ? { direccion: sedes[0].direccion, telefono: sedes[0].telefono } : null,
   });
@@ -80,7 +94,16 @@ export async function aprobarSolicitud(id: string) {
 
   await prisma.certificadoSolicitud.update({
     where: { id },
-    data: { estado: "APROBADO", pdfUrl, expiraEn, revisadoEn: new Date() },
+    data: {
+      estado: "APROBADO",
+      pdfUrl,
+      expiraEn,
+      revisadoEn: new Date(),
+      modelo,
+      cantidadCuotas,
+      cuotaVencimientoMes,
+      cuotaVencimientoAnio,
+    },
   });
 
   await sendMail({

@@ -4,10 +4,11 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { verifyAdminSession } from "@/lib/admin-dal";
-import { parseMatriculadosCsv } from "@/lib/csv";
+import { parseMatriculadosFile } from "@/lib/csv";
 import { logActivity } from "@/lib/activity-log";
 
 const PATH = "/admin/matriculados";
+const EXTENSIONES_SOPORTADAS = [".csv", ".xlsx", ".xls", ".xml"];
 
 export type UploadState = { error?: string } | undefined;
 
@@ -16,14 +17,15 @@ export async function uploadMatriculados(_prevState: UploadState, formData: Form
 
   const file = formData.get("archivo");
   if (!(file instanceof File) || file.size === 0) {
-    return { error: "Seleccioná un archivo CSV." };
+    return { error: "Seleccioná un archivo." };
   }
-  if (!file.name.toLowerCase().endsWith(".csv")) {
-    return { error: "El archivo debe ser un CSV." };
+  const nombreLower = file.name.toLowerCase();
+  if (!EXTENSIONES_SOPORTADAS.some((ext) => nombreLower.endsWith(ext))) {
+    return { error: "El archivo debe ser CSV, XLS o XLSX." };
   }
 
-  const content = await file.text();
-  const { rows, errores } = parseMatriculadosCsv(content);
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const { rows, errores } = parseMatriculadosFile(buffer, file.name);
 
   if (rows.length === 0) {
     return { error: errores[0] ?? "No se encontraron filas válidas en el archivo." };
@@ -44,16 +46,32 @@ export async function uploadMatriculados(_prevState: UploadState, formData: Form
     // Upsert por número de matrícula: repone fechaMatriculacion desde el registro paralelo si existe
     ...rows.map((row) => {
       const fechaGuardada = fechaPorMatricula.get(row.numeroMatricula);
+      const camposOpcionales = {
+        email: row.email || null,
+        condicion: row.condicion || null,
+        titulo: row.titulo || null,
+        situacion: row.situacion || null,
+        domicilioLaboral: row.domicilioLaboral || null,
+        codigoPostal: row.codigoPostal || null,
+        idLocalidad: row.idLocalidad || null,
+      };
       return prisma.matriculadoHabilitado.upsert({
         where: { numeroMatricula: row.numeroMatricula },
         update: {
           numeroDocumento: row.numeroDocumento,
           nombre: row.nombre,
           apellido: row.apellido,
-          email: row.email || null,
+          ...camposOpcionales,
           ...(fechaGuardada ? { fechaMatriculacion: fechaGuardada } : {}),
         },
-        create: { ...row, email: row.email || null, fechaMatriculacion: fechaGuardada ?? null },
+        create: {
+          numeroDocumento: row.numeroDocumento,
+          nombre: row.nombre,
+          apellido: row.apellido,
+          numeroMatricula: row.numeroMatricula,
+          ...camposOpcionales,
+          fechaMatriculacion: fechaGuardada ?? null,
+        },
       });
     }),
     prisma.matriculadosUpload.upsert({

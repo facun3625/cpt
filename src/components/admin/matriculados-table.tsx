@@ -11,6 +11,12 @@ type Matriculado = {
   numeroMatricula: string;
   fechaMatriculacion: Date | null;
   email: string | null;
+  condicion: string | null;
+  titulo: string | null;
+  situacion: string | null;
+  domicilioLaboral: string | null;
+  codigoPostal: string | null;
+  idLocalidad: string | null;
 };
 
 function toDateInputValue(date: Date | null) {
@@ -24,7 +30,9 @@ export function MatriculadosTable({ matriculados }: { matriculados: Matriculado[
     const q = query.trim().toLowerCase();
     if (!q) return matriculados;
     return matriculados.filter((m) =>
-      `${m.apellido} ${m.nombre} ${m.numeroDocumento} ${m.numeroMatricula} ${m.email ?? ""}`.toLowerCase().includes(q),
+      `${m.apellido} ${m.nombre} ${m.numeroDocumento} ${m.numeroMatricula} ${m.email ?? ""} ${m.titulo ?? ""}`
+        .toLowerCase()
+        .includes(q),
     );
   }, [matriculados, query]);
 
@@ -63,6 +71,10 @@ export function MatriculadosTable({ matriculados }: { matriculados: Matriculado[
               <th className="px-4 py-3 font-semibold">N° documento</th>
               <th className="px-4 py-3 font-semibold">N° matrícula</th>
               <th className="px-4 py-3 font-semibold">Email</th>
+              <th className="px-4 py-3 font-semibold">Título</th>
+              <th className="px-4 py-3 font-semibold">Situación</th>
+              <th className="px-4 py-3 font-semibold">Domicilio laboral</th>
+              <th className="px-4 py-3 font-semibold">CP</th>
               <th className="px-4 py-3 font-semibold">Fecha de matriculación</th>
             </tr>
           </thead>
@@ -75,6 +87,10 @@ export function MatriculadosTable({ matriculados }: { matriculados: Matriculado[
                 <td className="px-4 py-2.5 text-ink-600">{m.numeroDocumento}</td>
                 <td className="px-4 py-2.5 font-semibold text-primary-700">{m.numeroMatricula}</td>
                 <td className="px-4 py-2.5 text-ink-600">{m.email || <span className="text-ink-300">—</span>}</td>
+                <td className="px-4 py-2.5 text-ink-600">{m.titulo || <span className="text-ink-300">—</span>}</td>
+                <td className="px-4 py-2.5 text-ink-600">{m.situacion || <span className="text-ink-300">—</span>}</td>
+                <td className="px-4 py-2.5 text-ink-600">{m.domicilioLaboral || <span className="text-ink-300">—</span>}</td>
+                <td className="px-4 py-2.5 text-ink-600">{m.codigoPostal || <span className="text-ink-300">—</span>}</td>
                 <td className="px-4 py-2.5">
                   <form action={updateFechaMatriculacion.bind(null, m.id)} className="flex items-center gap-2">
                     <input

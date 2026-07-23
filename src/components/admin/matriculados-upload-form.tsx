@@ -26,8 +26,9 @@ export function MatriculadosUploadForm({ uploadInfo }: { uploadInfo: UploadInfo 
         <div>
           <h2 className="text-sm font-semibold text-ink-900">Subir lista de matriculados habilitados</h2>
           <p className="mt-1 text-sm text-ink-600">
-            El archivo debe ser un CSV con las columnas <strong>numero_documento</strong>, <strong>nombre</strong>,{" "}
-            <strong>apellido</strong> y <strong>numero_matricula</strong> (opcionalmente <strong>email</strong>).{" "}
+            Aceptamos CSV, XLS o XLSX, con las columnas <strong>numero_documento</strong>, <strong>nombre</strong>,{" "}
+            <strong>apellido</strong> y <strong>numero_matricula</strong> (opcionalmente email, título, situación,
+            condición, domicilio laboral, CP e id de localidad).{" "}
             <a
               href="/ejemplo-matriculados.csv"
               download
@@ -77,7 +78,7 @@ export function MatriculadosUploadForm({ uploadInfo }: { uploadInfo: UploadInfo 
           <input
             name="archivo"
             type="file"
-            accept=".csv"
+            accept=".csv,.xls,.xlsx,.xml"
             required
             onChange={(e) => setFileName(e.target.files?.[0]?.name ?? null)}
             className="hidden"

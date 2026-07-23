@@ -126,6 +126,12 @@ model MatriculadoHabilitado {
   numeroMatricula   String    @unique
   fechaMatriculacion DateTime?
   email             String?
+  condicion         String?
+  titulo            String?
+  situacion         String?
+  domicilioLaboral  String?
+  codigoPostal      String?
+  idLocalidad       String?
   createdAt         DateTime  @default(now())
 
   @@index([numeroDocumento])
@@ -180,26 +186,36 @@ enum CredencialEstado {
   REVOCADO
 }
 
+enum CertificadoModelo {
+  ANUAL
+  CUOTAS
+}
+
 model CertificadoSolicitud {
-  id                 String          @id @default(cuid())
-  numeroDocumento    String
-  nombre             String
-  apellido           String
-  numeroMatricula    String
-  fechaMatriculacion DateTime?
-  tituloProfesional  String?
-  domicilio          String?
-  email              String
-  lugarPresentacion  String
-  observaciones      String?
-  notasAdicionales   String?
-  estado             SolicitudEstado @default(PENDIENTE)
-  motivoRechazo      String?
-  codigoVerificacion String          @unique
-  pdfUrl             String?
-  expiraEn           DateTime?
-  createdAt          DateTime        @default(now())
-  revisadoEn         DateTime?
+  id                   String             @id @default(cuid())
+  numeroDocumento      String
+  nombre               String
+  apellido             String
+  numeroMatricula      String
+  fechaMatriculacion   DateTime?
+  tituloProfesional    String?
+  domicilio            String?
+  ciudad               String?
+  email                String
+  lugarPresentacion    String
+  observaciones        String?
+  notasAdicionales     String?
+  estado               SolicitudEstado    @default(PENDIENTE)
+  motivoRechazo        String?
+  modelo               CertificadoModelo?
+  cantidadCuotas       Int?
+  cuotaVencimientoMes  Int?
+  cuotaVencimientoAnio Int?
+  codigoVerificacion   String             @unique
+  pdfUrl               String?
+  expiraEn             DateTime?
+  createdAt            DateTime           @default(now())
+  revisadoEn           DateTime?
 }
 
 model CredencialSolicitud {

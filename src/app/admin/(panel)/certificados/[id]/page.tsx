@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { getCertificadoSolicitudById } from "@/lib/site-info";
-import { updateSolicitud, aprobarSolicitud, rechazarSolicitud } from "../actions";
+import { updateSolicitud, rechazarSolicitud } from "../actions";
+import { AprobarCertificadoForm } from "@/components/admin/aprobar-certificado-form";
 
 const inputClass =
   "mt-1 w-full rounded-lg border border-surface-border px-3 py-2 text-sm outline-none focus:border-primary-400";
@@ -34,7 +35,9 @@ export default async function CertificadoDetallePage({ params }: { params: Promi
 
       {solicitud.estado === "APROBADO" && (
         <div className="mt-4 rounded-lg bg-emerald-50 px-4 py-2.5 text-sm font-medium text-emerald-700">
-          Aprobado el {solicitud.revisadoEn && dateFormatter.format(solicitud.revisadoEn)}.{" "}
+          Aprobado el {solicitud.revisadoEn && dateFormatter.format(solicitud.revisadoEn)}
+          {solicitud.modelo === "CUOTAS" && ` — Modelo 2 (pago en cuotas, ${solicitud.cantidadCuotas} cuotas)`}
+          {solicitud.modelo === "ANUAL" && " — Modelo 1 (pago anual)"}.{" "}
           {solicitud.pdfUrl && (
             <a href={solicitud.pdfUrl} target="_blank" rel="noopener noreferrer" className="underline">
               Ver certificado
@@ -96,11 +99,21 @@ export default async function CertificadoDetallePage({ params }: { params: Promi
             <input
               name="domicilio"
               defaultValue={solicitud.domicilio ?? ""}
-              placeholder="Calle 123, ciudad"
+              placeholder="Calle 123"
               disabled={!esPendiente}
               className={inputClass}
             />
           </div>
+        </div>
+        <div>
+          <label className="text-xs font-medium text-ink-500">Ciudad</label>
+          <input
+            name="ciudad"
+            defaultValue={solicitud.ciudad ?? ""}
+            placeholder="Santa Fe"
+            disabled={!esPendiente}
+            className={inputClass}
+          />
         </div>
         <div>
           <label className="text-xs font-medium text-ink-500">Lugar de presentación</label>
@@ -151,18 +164,7 @@ export default async function CertificadoDetallePage({ params }: { params: Promi
 
       {esPendiente && (
         <div className="mt-6 grid gap-4 sm:grid-cols-2">
-          <form action={aprobarSolicitud.bind(null, solicitud.id)} className="rounded-xl border border-emerald-200 bg-emerald-50 p-5">
-            <h2 className="text-sm font-semibold text-emerald-800">Aprobar solicitud</h2>
-            <p className="mt-1 text-xs text-emerald-700">
-              Genera el certificado en PDF con QR de verificación y envía el enlace de descarga por email.
-            </p>
-            <button
-              type="submit"
-              className="mt-3 rounded-full bg-emerald-600 px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-700"
-            >
-              Aprobar y emitir
-            </button>
-          </form>
+          <AprobarCertificadoForm id={solicitud.id} />
 
           <form action={rechazarSolicitud.bind(null, solicitud.id)} className="rounded-xl border border-accent-500/20 bg-accent-500/5 p-5">
             <h2 className="text-sm font-semibold text-accent-700">Rechazar solicitud</h2>

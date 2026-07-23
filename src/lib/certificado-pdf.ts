@@ -9,27 +9,28 @@ export type CertificadoPdfData = {
   apellido: string;
   numeroDocumento: string;
   numeroMatricula: string;
-  fechaMatriculacion: Date | null;
   tituloProfesional: string | null;
   domicilio: string | null;
-  lugarPresentacion: string;
+  ciudad: string | null;
   notasAdicionales: string | null;
   codigoVerificacion: string;
   verificationUrl: string;
+  modelo: "ANUAL" | "CUOTAS";
+  cantidadCuotas: number | null;
+  cuotaVencimientoMes: number | null;
+  cuotaVencimientoAnio: number | null;
   firmas: { nombre: string; titulo: string; firmaUrl: string }[];
   sede: { direccion: string; telefono: string } | null;
 };
 
-const dateFormatter = new Intl.DateTimeFormat("es-AR", {
-  day: "2-digit",
-  month: "2-digit",
-  year: "numeric",
-  timeZone: "UTC",
-});
-
 const MESES = [
   "enero", "febrero", "marzo", "abril", "mayo", "junio",
   "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
+];
+
+const ORDINALES_FEM = [
+  "", "primera", "segunda", "tercera", "cuarta", "quinta", "sexta",
+  "séptima", "octava", "novena", "décima", "undécima", "duodécima",
 ];
 
 const UNIDADES = ["", "uno", "dos", "tres", "cuatro", "cinco", "seis", "siete", "ocho", "nueve"];
@@ -41,6 +42,10 @@ const ESPECIALES: Record<number, string> = {
 };
 const DECENAS = ["", "diez", "veinte", "treinta", "cuarenta", "cincuenta", "sesenta", "setenta", "ochenta", "noventa"];
 const CENTENAS = ["", "ciento", "doscientos", "trescientos", "cuatrocientos", "quinientos", "seiscientos", "setecientos", "ochocientos", "novecientos"];
+
+function formatearDni(dni: string): string {
+  return dni.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+}
 
 function numeroATexto(n: number): string {
   if (n === 0) return "cero";
@@ -96,7 +101,7 @@ export async function generateCertificadoPdf(data: CertificadoPdfData): Promise<
     const pageWidth = 483; // A4 width (595) menos 2*56 de margen
 
     if (logoBuffer) {
-      doc.image(logoBuffer, 56 + pageWidth / 2 - 24, 40, { width: 48 });
+      doc.image(logoBuffer, 56 + pageWidth / 2 - 50, 32, { width: 100 });
     }
     doc
       .fontSize(13)
@@ -131,24 +136,34 @@ export async function generateCertificadoPdf(data: CertificadoPdfData): Promise<
 
     const nombreCompleto = `${data.apellido.toUpperCase()}, ${data.nombre}`;
     const tituloTexto = data.tituloProfesional ? `${data.tituloProfesional} ` : "";
-    const domicilioTexto = data.domicilio ? `, fijando su domicilio legal en ${data.domicilio}` : "";
-    const fechaMatriculacionTexto = data.fechaMatriculacion
-      ? ` desde el ${dateFormatter.format(data.fechaMatriculacion)}`
+    const domicilioTexto = data.domicilio
+      ? `, fijando su domicilio legal en ${data.domicilio}${data.ciudad ? ` de la ciudad de ${data.ciudad}` : ""}`
       : "";
+    const anioActual = new Date().getFullYear();
 
-    doc
-      .fontSize(11.5)
-      .font("Helvetica")
-      .fillColor("#14201d")
-      .text(
-        `Certificamos que el/la ${tituloTexto}${nombreCompleto}, D.N.I. N° ${data.numeroDocumento}, se ha matriculado ` +
+    const parrafoPrincipal =
+      data.modelo === "CUOTAS"
+        ? `Certificamos que el ${tituloTexto}${nombreCompleto}, D.N.I. N° ${formatearDni(data.numeroDocumento)}, se ha matriculado ` +
           `en este Colegio Profesional de Maestros Mayores de Obras y Técnicos de la Provincia de Santa Fe - Distrito I ` +
-          `bajo el N° ${data.numeroMatricula}${domicilioTexto}, en cumplimiento de lo dispuesto en la Ley N° 10.946, ` +
-          `quedando por lo tanto habilitado/a para ejercer su profesión dentro del territorio de esta Provincia` +
-          `${fechaMatriculacionTexto}, manteniendo tal condición mientras cumplimente con las obligaciones establecidas ` +
-          `por este Colegio.`,
-        { align: "justify", width: pageWidth, lineGap: 3 },
-      );
+          `bajo el N° ${data.numeroMatricula}${domicilioTexto}, en cumplimiento de lo dispuesto en la Ley N° 10.946 y ` +
+          `Decreto 2636, y habiendo establecido esta Institución el pago de la matrícula en ${numeroATexto(data.cantidadCuotas ?? 0)} ` +
+          `cuotas bimestrales y consecutivas, quedará por lo tanto habilitado para ejercer su profesión dentro del ` +
+          `territorio de esta Provincia, mientras cumplimente con el pago de las cuotas sucesivas, hasta el mes de ` +
+          `${MESES[(data.cuotaVencimientoMes ?? 1) - 1]} de ${data.cuotaVencimientoAnio} - vencimiento de la ` +
+          `${ORDINALES_FEM[data.cantidadCuotas ?? 0] ?? "última"} y última cuota del "derecho de inscripción anual"- ` +
+          `según lo establecido en la Resolución N° 98/96 del Cuerpo, fecha en que se confeccionarán los padrones ` +
+          `definitivos de matriculados habilitados para el año ${data.cuotaVencimientoAnio}.`
+        : `Certificamos que el ${tituloTexto}${nombreCompleto}, D.N.I. N° ${formatearDni(data.numeroDocumento)} se ha matriculado ` +
+          `en este Colegio Profesional de Maestros Mayores de Obras y Técnicos de la Provincia de Santa Fe - Distrito I ` +
+          `bajo el N° ${data.numeroMatricula}${domicilioTexto}, en cumplimiento de lo dispuesto por el Art. 12 de la ` +
+          `Ley 10.946, estando por lo tanto habilitado para ejercer su profesión dentro del territorio de esta ` +
+          `provincia durante el año ${anioActual}.`;
+
+    doc.fontSize(11.5).font("Helvetica").fillColor("#14201d").text(parrafoPrincipal, {
+      align: "justify",
+      width: pageWidth,
+      lineGap: 3,
+    });
 
     if (data.notasAdicionales) {
       doc.moveDown(1);
@@ -160,8 +175,8 @@ export async function generateCertificadoPdf(data: CertificadoPdfData): Promise<
       .fontSize(11.5)
       .fillColor("#14201d")
       .text(
-        `A pedido del interesado y para ser presentado ante ${data.lugarPresentacion}, se extiende el presente ` +
-          `${fechaEnPalabras(new Date())}.`,
+        `A pedido del interesado y para ser presentado ante quien corresponda, se extiende el presente en la ciudad ` +
+          `de Santa Fe ${fechaEnPalabras(new Date())}.`,
         { align: "justify", width: pageWidth, lineGap: 3 },
       );
 

@@ -42,6 +42,8 @@ export async function crearSolicitudCertificado(formData: FormData): Promise<Sol
       apellido: matriculado.apellido,
       numeroMatricula: matriculado.numeroMatricula,
       fechaMatriculacion: matriculado.fechaMatriculacion,
+      tituloProfesional: matriculado.titulo,
+      domicilio: matriculado.domicilioLaboral,
       email,
       lugarPresentacion,
       observaciones,

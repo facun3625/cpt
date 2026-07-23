@@ -7,8 +7,10 @@ import { readFile } from "fs/promises";
 export type CredencialPdfData = {
   nombre: string;
   apellido: string;
+  numeroDocumento: string;
   numeroMatricula: string;
   tituloProfesional: string | null;
+  fechaMatriculacion: Date | null;
   fotoUrl: string;
   codigoVerificacion: string;
   verificationUrl: string;
@@ -21,6 +23,10 @@ const dateFormatter = new Intl.DateTimeFormat("es-AR", {
   year: "numeric",
   timeZone: "UTC",
 });
+
+function formatearDni(dni: string): string {
+  return dni.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+}
 
 async function readPublicFile(publicUrl: string): Promise<Buffer | null> {
   try {
@@ -37,7 +43,7 @@ const FRONT_HEIGHT = 252;
 const INSTITUTION_NAME =
   "COLEGIO PROFESIONAL DE MAESTROS MAYORES DE OBRAS Y TÉCNICOS DE LA ARQUITECTURA, INDUSTRIA E INGENIERÍA DE LA PROVINCIA DE SANTA FE";
 const HEADER_NAME_FONT_SIZE = 8;
-const HEADER_NAME_X = 58;
+const HEADER_NAME_X = 72;
 
 const QR_BLOCK_HEIGHT = 104;
 const FIRMA_ROW_HEIGHT = 50;
@@ -55,7 +61,7 @@ function drawHeader(doc: PDFKit.PDFDocument, logoBuffer: Buffer | null, subtitul
 
   doc.rect(0, 0, CARD_WIDTH, headerHeight).fill("#04213f");
   if (logoBuffer) {
-    doc.image(logoBuffer, 14, 10, { width: 30 });
+    doc.image(logoBuffer, 12, 8, { width: 46 });
   }
 
   doc.fontSize(HEADER_NAME_FONT_SIZE).font("Helvetica-Bold").fillColor("#ffffff");
@@ -139,12 +145,36 @@ function drawFrente(
     .stroke();
   y += 14;
 
-  doc.fontSize(8.5).font("Helvetica").fillColor("#7c8b87").text("N° DE MATRÍCULA", infoX, y);
-  doc.fontSize(15).font("Helvetica-Bold").fillColor("#003a72").text(data.numeroMatricula, infoX, y + 11);
+  const colWidth = infoWidth / 2 - 6;
+  const rightX = infoX + infoWidth / 2 + 6;
+
+  doc.fontSize(8.5).font("Helvetica").fillColor("#7c8b87").text("N° DE MATRÍCULA", infoX, y, { width: colWidth });
+  doc
+    .fontSize(15)
+    .font("Helvetica-Bold")
+    .fillColor("#003a72")
+    .text(data.numeroMatricula, infoX, y + 11, { width: colWidth });
+
+  doc.fontSize(8.5).font("Helvetica").fillColor("#7c8b87").text("D.N.I.", rightX, y, { width: colWidth });
+  doc
+    .fontSize(15)
+    .font("Helvetica-Bold")
+    .fillColor("#003a72")
+    .text(formatearDni(data.numeroDocumento), rightX, y + 11, { width: colWidth });
+
   y += 34;
 
-  doc.fontSize(8.5).font("Helvetica").fillColor("#7c8b87").text("ESTADO", infoX, y);
-  doc.fontSize(13).font("Helvetica-Bold").fillColor("#0a7a4c").text("HABILITADO", infoX, y + 12);
+  doc.fontSize(8.5).font("Helvetica").fillColor("#7c8b87").text("ESTADO", infoX, y, { width: colWidth });
+  doc.fontSize(13).font("Helvetica-Bold").fillColor("#0a7a4c").text("HABILITADO", infoX, y + 12, { width: colWidth });
+
+  if (data.fechaMatriculacion) {
+    doc.fontSize(8.5).font("Helvetica").fillColor("#7c8b87").text("FECHA DE INSCRIPCIÓN", rightX, y, { width: colWidth });
+    doc
+      .fontSize(11)
+      .font("Helvetica-Bold")
+      .fillColor("#14201d")
+      .text(dateFormatter.format(data.fechaMatriculacion), rightX, y + 12, { width: colWidth });
+  }
 
   const footerDividerY = FRONT_HEIGHT - 28;
   const footerTextY = FRONT_HEIGHT - 20;

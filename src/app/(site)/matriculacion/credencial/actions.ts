@@ -47,6 +47,7 @@ export async function crearSolicitudCredencial(formData: FormData): Promise<Soli
       apellido: matriculado.apellido,
       numeroMatricula: matriculado.numeroMatricula,
       fechaMatriculacion: matriculado.fechaMatriculacion,
+      tituloProfesional: matriculado.titulo,
       email,
       fotoUrl,
       codigoVerificacion,

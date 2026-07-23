@@ -1,5 +1,6 @@
 import "server-only";
 import { parse } from "csv-parse/sync";
+import * as XLSX from "xlsx";
 
 export type MatriculadoRow = {
   numeroDocumento: string;
@@ -7,6 +8,12 @@ export type MatriculadoRow = {
   apellido: string;
   numeroMatricula: string;
   email: string;
+  condicion: string;
+  titulo: string;
+  situacion: string;
+  domicilioLaboral: string;
+  codigoPostal: string;
+  idLocalidad: string;
 };
 
 const HEADER_ALIASES: Record<string, keyof MatriculadoRow> = {
@@ -14,6 +21,7 @@ const HEADER_ALIASES: Record<string, keyof MatriculadoRow> = {
   documento: "numeroDocumento",
   dni: "numeroDocumento",
   nrodocumento: "numeroDocumento",
+  ndedocum: "numeroDocumento",
   nombre: "nombre",
   nombres: "nombre",
   apellido: "apellido",
@@ -21,13 +29,26 @@ const HEADER_ALIASES: Record<string, keyof MatriculadoRow> = {
   numeromatricula: "numeroMatricula",
   matricula: "numeroMatricula",
   nromatricula: "numeroMatricula",
+  nicpt: "numeroMatricula",
   email: "email",
   mail: "email",
   correo: "email",
   correoelectronico: "email",
+  condicion: "condicion",
+  titulo: "titulo",
+  situacion: "situacion",
+  domiciliolaboral: "domicilioLaboral",
+  domicilio: "domicilioLaboral",
+  cp: "codigoPostal",
+  codigopostal: "codigoPostal",
+  iddeloc: "idLocalidad",
+  idlocalidad: "idLocalidad",
+  idloc: "idLocalidad",
 };
 
 const REQUIRED_FIELDS = ["numeroDocumento", "nombre", "apellido", "numeroMatricula"] as const;
+
+const EXTENSIONES_SOPORTADAS = ["csv", "xlsx", "xls", "xml"] as const;
 
 function normalizeHeader(header: string): keyof MatriculadoRow | null {
   const key = header
@@ -45,20 +66,52 @@ function detectDelimiter(firstLine: string): string {
   return semicolonCount > commaCount ? ";" : ",";
 }
 
-export function parseMatriculadosCsv(content: string): {
+function extraerRegistrosCrudos(
+  buffer: Buffer,
+  extension: string,
+): { rawRecords: Record<string, string>[]; error?: string } {
+  if (extension === "csv") {
+    const content = buffer.toString("utf-8");
+    const firstLine = content.split(/\r?\n/, 1)[0] ?? "";
+    const delimiter = detectDelimiter(firstLine);
+    const rawRecords = parse(content, {
+      columns: true,
+      bom: true,
+      trim: true,
+      skip_empty_lines: true,
+      delimiter,
+    }) as Record<string, string>[];
+    return { rawRecords };
+  }
+
+  if (extension === "xlsx" || extension === "xls" || extension === "xml") {
+    const workbook = XLSX.read(buffer, { type: "buffer" });
+    const primeraHoja = workbook.SheetNames[0];
+    if (!primeraHoja) return { rawRecords: [], error: "El archivo no tiene hojas con datos." };
+    const rawRecords = XLSX.utils.sheet_to_json(workbook.Sheets[primeraHoja], {
+      raw: false,
+      defval: "",
+    }) as Record<string, string>[];
+    return { rawRecords };
+  }
+
+  return { rawRecords: [], error: "Formato de archivo no soportado. Subí un CSV, XLS o XLSX." };
+}
+
+export function parseMatriculadosFile(
+  buffer: Buffer,
+  filename: string,
+): {
   rows: MatriculadoRow[];
   errores: string[];
 } {
-  const firstLine = content.split(/\r?\n/, 1)[0] ?? "";
-  const delimiter = detectDelimiter(firstLine);
+  const extension = filename.toLowerCase().split(".").pop() ?? "";
+  if (!EXTENSIONES_SOPORTADAS.includes(extension as (typeof EXTENSIONES_SOPORTADAS)[number])) {
+    return { rows: [], errores: ["Formato de archivo no soportado. Subí un CSV, XLS o XLSX."] };
+  }
 
-  const rawRecords = parse(content, {
-    columns: true,
-    bom: true,
-    trim: true,
-    skip_empty_lines: true,
-    delimiter,
-  }) as Record<string, string>[];
+  const { rawRecords, error } = extraerRegistrosCrudos(buffer, extension);
+  if (error) return { rows: [], errores: [error] };
 
   if (rawRecords.length === 0) {
     return { rows: [], errores: ["El archivo está vacío o no tiene filas de datos."] };
@@ -84,9 +137,22 @@ export function parseMatriculadosCsv(content: string): {
   const errores: string[] = [];
 
   rawRecords.forEach((record, index) => {
-    const row: Partial<MatriculadoRow> = { email: "" };
+    const row: Partial<MatriculadoRow> = {
+      email: "",
+      condicion: "",
+      titulo: "",
+      situacion: "",
+      domicilioLaboral: "",
+      codigoPostal: "",
+      idLocalidad: "",
+    };
     for (const [rawHeader, field] of headerMap) {
       row[field] = String(record[rawHeader] ?? "").trim();
+    }
+
+    // El N° de documento suele venir con puntos o comas como separador de miles (ej. "7.891.023")
+    if (row.numeroDocumento) {
+      row.numeroDocumento = row.numeroDocumento.replace(/\D/g, "");
     }
 
     if (!row.numeroDocumento || !row.nombre || !row.apellido || !row.numeroMatricula) {
