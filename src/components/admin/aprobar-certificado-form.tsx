@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { aprobarSolicitud } from "@/app/admin/(panel)/certificados/actions";
+import { SubmitButtonPending } from "@/components/admin/submit-button-pending";
 
 const inputClass =
   "mt-1 w-full rounded-lg border border-surface-border px-3 py-2 text-sm outline-none focus:border-primary-400";
@@ -72,12 +73,12 @@ export function AprobarCertificadoForm({ id }: { id: string }) {
         </div>
       )}
 
-      <button
-        type="submit"
-        className="mt-4 rounded-full bg-emerald-600 px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-700"
+      <SubmitButtonPending
+        pendingText="Generando certificado…"
+        className="mt-4 flex items-center gap-2 rounded-full bg-emerald-600 px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-700"
       >
         Aprobar y emitir
-      </button>
+      </SubmitButtonPending>
     </form>
   );
 }

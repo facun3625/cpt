@@ -8,6 +8,7 @@ import {
   revocarCredencial,
   regenerarCredencial,
 } from "../actions";
+import { SubmitButtonPending } from "@/components/admin/submit-button-pending";
 
 const inputClass =
   "mt-1 w-full rounded-lg border border-surface-border px-3 py-2 text-sm outline-none focus:border-primary-400";
@@ -130,12 +131,12 @@ export default async function CredencialDetallePage({ params }: { params: Promis
             <p className="mt-1 text-xs text-emerald-700">
               Genera la credencial en PDF con QR de verificación y envía el enlace de descarga por email.
             </p>
-            <button
-              type="submit"
-              className="mt-3 rounded-full bg-emerald-600 px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-700"
+            <SubmitButtonPending
+              pendingText="Generando credencial…"
+              className="mt-3 flex items-center gap-2 rounded-full bg-emerald-600 px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-700"
             >
               Aprobar y emitir
-            </button>
+            </SubmitButtonPending>
           </form>
 
           <form action={rechazarSolicitud.bind(null, solicitud.id)} className="rounded-xl border border-accent-500/20 bg-accent-500/5 p-5">
@@ -181,12 +182,12 @@ export default async function CredencialDetallePage({ params }: { params: Promis
           )}
           {puedeRegenerar && (
             <form action={regenerarCredencial.bind(null, solicitud.id)}>
-              <button
-                type="submit"
-                className="rounded-full border border-surface-border px-5 py-2 text-sm font-semibold text-ink-600 transition-colors hover:border-primary-400 hover:text-primary-700"
+              <SubmitButtonPending
+                pendingText="Generando credencial…"
+                className="flex items-center gap-2 rounded-full border border-surface-border px-5 py-2 text-sm font-semibold text-ink-600 transition-colors hover:border-primary-400 hover:text-primary-700"
               >
                 Generar nueva credencial (con los datos actuales)
-              </button>
+              </SubmitButtonPending>
             </form>
           )}
         </div>
