@@ -19,6 +19,7 @@ export async function createFirma(formData: FormData) {
   const enCredencial = formData.get("enCredencial") === "on";
 
   const firmaUrl = await saveUploadedSignature(file);
+  if (!firmaUrl) return;
   const count = await prisma.firma.count();
   await prisma.firma.create({ data: { nombre, titulo, firmaUrl, orden: count, enCertificado, enCredencial } });
 
@@ -44,9 +45,11 @@ export async function updateFirma(id: string, formData: FormData) {
 
   const file = formData.get("firma");
   if (file instanceof File && file.size > 0) {
+    const firmaUrl = await saveUploadedSignature(file);
+    if (!firmaUrl) return;
     const existing = await prisma.firma.findUnique({ where: { id } });
     if (existing) await deleteUploadedFile(existing.firmaUrl);
-    data.firmaUrl = await saveUploadedSignature(file);
+    data.firmaUrl = firmaUrl;
   }
 
   await prisma.firma.update({ where: { id }, data });

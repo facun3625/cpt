@@ -5,7 +5,13 @@ import { usePathname } from "next/navigation";
 import { adminNav } from "@/lib/admin-nav";
 import { logout } from "@/app/admin/actions";
 
-export function AdminSidebar({ email }: { email: string }) {
+export function AdminSidebar({
+  email,
+  pendingCounts = {},
+}: {
+  email: string;
+  pendingCounts?: Record<string, number>;
+}) {
   const pathname = usePathname();
 
   return (
@@ -20,6 +26,7 @@ export function AdminSidebar({ email }: { email: string }) {
       <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 py-1">
         {adminNav.map((item) => {
           const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+          const pendientes = pendingCounts[item.href] ?? 0;
           return (
             <Link
               key={item.href}
@@ -32,6 +39,7 @@ export function AdminSidebar({ email }: { email: string }) {
                 <path d={item.icon} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
               {item.label}
+              {pendientes > 0 && <span className="text-accent-500">({pendientes})</span>}
             </Link>
           );
         })}

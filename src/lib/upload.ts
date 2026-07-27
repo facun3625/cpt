@@ -1,6 +1,7 @@
 import "server-only";
 import { mkdir, unlink, writeFile } from "fs/promises";
 import path from "path";
+import sharp from "sharp";
 
 const NOTICIAS_DIR = path.join(process.cwd(), "public", "uploads", "noticias");
 const REPOSITORIO_DIR = path.join(process.cwd(), "public", "uploads", "repositorio");
@@ -39,13 +40,24 @@ export async function saveUploadedDocument(
   return { url: `/uploads/repositorio/${filename}`, extension, tamano: file.size };
 }
 
-export async function saveUploadedSignature(file: File): Promise<string> {
+// pdfkit sólo puede incrustar JPEG y PNG: cualquier otro formato (WebP, HEIC, GIF, etc.)
+// se convierte a PNG acá, así el que sube el archivo no tiene que preocuparse por el formato.
+async function convertirAPng(buffer: Buffer): Promise<Buffer | null> {
+  try {
+    return await sharp(buffer).png().toBuffer();
+  } catch {
+    return null;
+  }
+}
+
+export async function saveUploadedSignature(file: File): Promise<string | null> {
+  const original = Buffer.from(await file.arrayBuffer());
+  const buffer = await convertirAPng(original);
+  if (!buffer) return null;
+
   await mkdir(FIRMAS_DIR, { recursive: true });
 
-  const ext = path.extname(file.name) || ".png";
-  const filename = `${crypto.randomUUID()}${ext}`;
-  const buffer = Buffer.from(await file.arrayBuffer());
-
+  const filename = `${crypto.randomUUID()}.png`;
   await writeFile(path.join(FIRMAS_DIR, filename), buffer);
   return `/uploads/firmas/${filename}`;
 }
@@ -57,14 +69,13 @@ export async function saveCertificadoPdf(buffer: Buffer, filename: string): Prom
 }
 
 export async function saveUploadedFoto(file: File): Promise<string | null> {
-  const extension = path.extname(file.name).slice(1).toLowerCase();
-  if (!ALLOWED_IMAGE_EXTENSIONS.includes(extension)) return null;
+  const original = Buffer.from(await file.arrayBuffer());
+  const buffer = await convertirAPng(original);
+  if (!buffer) return null;
 
   await mkdir(CREDENCIALES_FOTOS_DIR, { recursive: true });
 
-  const filename = `${crypto.randomUUID()}.${extension}`;
-  const buffer = Buffer.from(await file.arrayBuffer());
-
+  const filename = `${crypto.randomUUID()}.png`;
   await writeFile(path.join(CREDENCIALES_FOTOS_DIR, filename), buffer);
   return `/uploads/credenciales-fotos/${filename}`;
 }
