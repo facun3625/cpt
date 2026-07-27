@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { verifyAdminSession } from "@/lib/admin-dal";
 import { generateCredencialPdf } from "@/lib/credencial-pdf";
-import { saveCredencialPdf } from "@/lib/upload";
+import { saveCredencialPdf, deleteUploadedFile } from "@/lib/upload";
 import { sendMail } from "@/lib/mailer";
 import { logActivity } from "@/lib/activity-log";
 
@@ -175,6 +175,29 @@ export async function reenviarEnlaceDesdeListado(id: string) {
 
   revalidatePath("/", "layout");
   return { enviado };
+}
+
+export async function eliminarSolicitudes(ids: string[]) {
+  const session = await verifyAdminSession();
+  if (ids.length === 0) return;
+
+  const solicitudes = await prisma.credencialSolicitud.findMany({ where: { id: { in: ids } } });
+  await Promise.all(
+    solicitudes.flatMap((s) => [
+      deleteUploadedFile(s.fotoUrl),
+      ...(s.credencialUrl ? [deleteUploadedFile(s.credencialUrl)] : []),
+    ]),
+  );
+
+  await prisma.credencialSolicitud.deleteMany({ where: { id: { in: ids } } });
+
+  await logActivity(
+    session.email,
+    `Eliminó ${solicitudes.length} solicitud${solicitudes.length === 1 ? "" : "es"} de credencial`,
+    solicitudes.map((s) => `${s.apellido}, ${s.nombre}`).join(" | "),
+  );
+
+  revalidatePath("/", "layout");
 }
 
 export async function revocarCredencial(id: string) {

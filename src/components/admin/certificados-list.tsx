@@ -2,14 +2,14 @@
 
 import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
-import { reenviarEnlaceDesdeListado, eliminarSolicitudes } from "@/app/admin/(panel)/credenciales/actions";
+import { eliminarSolicitudes } from "@/app/admin/(panel)/certificados/actions";
 
 type Solicitud = {
   id: string;
   nombre: string;
   apellido: string;
   numeroMatricula: string;
-  fotoUrl: string;
+  lugarPresentacion: string;
   estado: string;
   createdAt: Date;
 };
@@ -18,7 +18,6 @@ const ESTADO_STYLE: Record<string, string> = {
   PENDIENTE: "bg-accent-500/10 text-accent-600",
   APROBADO: "bg-emerald-100 text-emerald-700",
   RECHAZADO: "bg-ink-900/10 text-ink-600",
-  REVOCADO: "bg-ink-900/10 text-ink-500 line-through",
 };
 
 const dateFormatter = new Intl.DateTimeFormat("es-AR", {
@@ -36,22 +35,10 @@ function normalizar(value: string) {
     .toLowerCase();
 }
 
-export function CredencialesList({ solicitudes }: { solicitudes: Solicitud[] }) {
+export function CertificadosList({ solicitudes }: { solicitudes: Solicitud[] }) {
   const [query, setQuery] = useState("");
-  const [estadoEnvio, setEstadoEnvio] = useState<Record<string, "ok" | "error">>({});
-  const [pendingId, setPendingId] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
-  const [eliminando, startEliminando] = useTransition();
   const [seleccionadas, setSeleccionadas] = useState<Set<string>>(new Set());
-
-  function handleReenviar(id: string) {
-    setPendingId(id);
-    startTransition(async () => {
-      const { enviado } = await reenviarEnlaceDesdeListado(id);
-      setEstadoEnvio((prev) => ({ ...prev, [id]: enviado ? "ok" : "error" }));
-      setPendingId(null);
-    });
-  }
+  const [isPending, startTransition] = useTransition();
 
   const filtradas = useMemo(() => {
     const q = normalizar(query.trim());
@@ -71,16 +58,19 @@ export function CredencialesList({ solicitudes }: { solicitudes: Solicitud[] }) 
   }
 
   function toggleTodas() {
-    setSeleccionadas((prev) => (todasSeleccionadas ? new Set() : new Set(filtradas.map((s) => s.id))));
+    setSeleccionadas((prev) => {
+      if (todasSeleccionadas) return new Set();
+      return new Set(filtradas.map((s) => s.id));
+    });
   }
 
   function handleEliminar() {
     const cantidad = seleccionadas.size;
     if (cantidad === 0) return;
-    if (!window.confirm(`¿Eliminar ${cantidad} solicitud${cantidad === 1 ? "" : "es"} de credencial? Esta acción no se puede deshacer.`)) {
+    if (!window.confirm(`¿Eliminar ${cantidad} solicitud${cantidad === 1 ? "" : "es"} de certificado? Esta acción no se puede deshacer.`)) {
       return;
     }
-    startEliminando(async () => {
+    startTransition(async () => {
       await eliminarSolicitudes(Array.from(seleccionadas));
       setSeleccionadas(new Set());
     });
@@ -113,11 +103,11 @@ export function CredencialesList({ solicitudes }: { solicitudes: Solicitud[] }) 
         {seleccionadas.size > 0 && (
           <button
             type="button"
-            disabled={eliminando}
+            disabled={isPending}
             onClick={handleEliminar}
             className="rounded-full bg-accent-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-accent-600 disabled:opacity-60"
           >
-            {eliminando ? "Eliminando…" : `Eliminar (${seleccionadas.size})`}
+            {isPending ? "Eliminando…" : `Eliminar (${seleccionadas.size})`}
           </button>
         )}
       </div>
@@ -151,51 +141,26 @@ export function CredencialesList({ solicitudes }: { solicitudes: Solicitud[] }) 
               onChange={() => toggleUna(s.id)}
               className="h-4 w-4 shrink-0 rounded border-surface-border"
             />
-            <Link href={`/admin/credenciales/${s.id}`} className="flex min-w-0 flex-1 items-center gap-3">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={s.fotoUrl}
-                alt=""
-                className="h-10 w-10 shrink-0 rounded-full border border-surface-border object-cover"
-              />
+            <Link href={`/admin/certificados/${s.id}`} className="flex min-w-0 flex-1 items-center justify-between gap-4">
               <div className="min-w-0">
                 <p className="truncate text-sm font-semibold text-ink-900">
-                  {s.apellido}, {s.nombre}{" "}
-                  <span className="font-normal text-ink-400">— Matrícula {s.numeroMatricula}</span>
+                  {s.apellido}, {s.nombre} <span className="font-normal text-ink-400">— Matrícula {s.numeroMatricula}</span>
                 </p>
-                <p className="mt-0.5 truncate text-xs text-ink-400">{dateFormatter.format(s.createdAt)}</p>
+                <p className="mt-0.5 truncate text-xs text-ink-400">
+                  {s.lugarPresentacion} · {dateFormatter.format(s.createdAt)}
+                </p>
               </div>
-            </Link>
-
-            <div className="flex shrink-0 items-center gap-2">
-              {s.estado === "APROBADO" && (
-                <button
-                  type="button"
-                  disabled={isPending && pendingId === s.id}
-                  onClick={() => handleReenviar(s.id)}
-                  title="Reenviar el enlace de descarga por email"
-                  className="rounded-full border border-surface-border px-3 py-1.5 text-xs font-semibold text-ink-600 transition-colors hover:border-primary-400 hover:text-primary-700 disabled:opacity-60"
-                >
-                  {pendingId === s.id
-                    ? "Enviando..."
-                    : estadoEnvio[s.id] === "ok"
-                      ? "Enviado ✓"
-                      : estadoEnvio[s.id] === "error"
-                        ? "Error, reintentar"
-                        : "Reenviar"}
-                </button>
-              )}
-              <span className={`rounded-full px-3 py-1 text-xs font-semibold ${ESTADO_STYLE[s.estado]}`}>
+              <span className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${ESTADO_STYLE[s.estado]}`}>
                 {s.estado}
               </span>
-            </div>
+            </Link>
           </div>
         ))}
 
         {filtradas.length === 0 && (
           <p className="rounded-xl border border-dashed border-surface-border bg-surface p-6 text-center text-sm text-ink-500">
             {solicitudes.length === 0
-              ? "Todavía no hay solicitudes de credenciales."
+              ? "Todavía no hay solicitudes de certificados."
               : "No encontramos solicitudes que coincidan con tu búsqueda."}
           </p>
         )}

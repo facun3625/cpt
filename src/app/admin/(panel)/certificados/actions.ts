@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { verifyAdminSession } from "@/lib/admin-dal";
 import { getSedes } from "@/lib/site-info";
 import { generateCertificadoPdf } from "@/lib/certificado-pdf";
-import { saveCertificadoPdf } from "@/lib/upload";
+import { saveCertificadoPdf, deleteUploadedFile } from "@/lib/upload";
 import { sendMail } from "@/lib/mailer";
 import { logActivity } from "@/lib/activity-log";
 
@@ -125,6 +125,24 @@ export async function aprobarSolicitud(id: string, formData: FormData) {
 
   revalidatePath("/", "layout");
   redirect(`${PATH}/${id}?ok=1`);
+}
+
+export async function eliminarSolicitudes(ids: string[]) {
+  const session = await verifyAdminSession();
+  if (ids.length === 0) return;
+
+  const solicitudes = await prisma.certificadoSolicitud.findMany({ where: { id: { in: ids } } });
+  await Promise.all(solicitudes.filter((s) => s.pdfUrl).map((s) => deleteUploadedFile(s.pdfUrl!)));
+
+  await prisma.certificadoSolicitud.deleteMany({ where: { id: { in: ids } } });
+
+  await logActivity(
+    session.email,
+    `Eliminó ${solicitudes.length} solicitud${solicitudes.length === 1 ? "" : "es"} de certificado`,
+    solicitudes.map((s) => `${s.apellido}, ${s.nombre}`).join(" | "),
+  );
+
+  revalidatePath("/", "layout");
 }
 
 export async function rechazarSolicitud(id: string, formData: FormData) {
