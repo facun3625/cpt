@@ -3,6 +3,7 @@
 import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { eliminarSolicitudes } from "@/app/admin/(panel)/certificados/actions";
+import { ConfirmDialog } from "@/components/admin/confirm-dialog";
 
 type Solicitud = {
   id: string;
@@ -39,6 +40,7 @@ export function CertificadosList({ solicitudes }: { solicitudes: Solicitud[] }) 
   const [query, setQuery] = useState("");
   const [seleccionadas, setSeleccionadas] = useState<Set<string>>(new Set());
   const [isPending, startTransition] = useTransition();
+  const [confirmando, setConfirmando] = useState(false);
 
   const filtradas = useMemo(() => {
     const q = normalizar(query.trim());
@@ -64,15 +66,11 @@ export function CertificadosList({ solicitudes }: { solicitudes: Solicitud[] }) 
     });
   }
 
-  function handleEliminar() {
-    const cantidad = seleccionadas.size;
-    if (cantidad === 0) return;
-    if (!window.confirm(`¿Eliminar ${cantidad} solicitud${cantidad === 1 ? "" : "es"} de certificado? Esta acción no se puede deshacer.`)) {
-      return;
-    }
+  function confirmarEliminar() {
     startTransition(async () => {
       await eliminarSolicitudes(Array.from(seleccionadas));
       setSeleccionadas(new Set());
+      setConfirmando(false);
     });
   }
 
@@ -104,7 +102,7 @@ export function CertificadosList({ solicitudes }: { solicitudes: Solicitud[] }) 
           <button
             type="button"
             disabled={isPending}
-            onClick={handleEliminar}
+            onClick={() => setConfirmando(true)}
             className="rounded-full bg-accent-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-accent-600 disabled:opacity-60"
           >
             {isPending ? "Eliminando…" : `Eliminar (${seleccionadas.size})`}
@@ -165,6 +163,15 @@ export function CertificadosList({ solicitudes }: { solicitudes: Solicitud[] }) 
           </p>
         )}
       </div>
+
+      <ConfirmDialog
+        open={confirmando}
+        title="Eliminar solicitudes"
+        description={`¿Eliminar ${seleccionadas.size} solicitud${seleccionadas.size === 1 ? "" : "es"} de certificado? Esta acción no se puede deshacer.`}
+        pending={isPending}
+        onConfirm={confirmarEliminar}
+        onCancel={() => setConfirmando(false)}
+      />
     </div>
   );
 }

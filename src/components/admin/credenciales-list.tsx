@@ -3,6 +3,7 @@
 import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { reenviarEnlaceDesdeListado, eliminarSolicitudes } from "@/app/admin/(panel)/credenciales/actions";
+import { ConfirmDialog } from "@/components/admin/confirm-dialog";
 
 type Solicitud = {
   id: string;
@@ -43,6 +44,7 @@ export function CredencialesList({ solicitudes }: { solicitudes: Solicitud[] }) 
   const [isPending, startTransition] = useTransition();
   const [eliminando, startEliminando] = useTransition();
   const [seleccionadas, setSeleccionadas] = useState<Set<string>>(new Set());
+  const [confirmando, setConfirmando] = useState(false);
 
   function handleReenviar(id: string) {
     setPendingId(id);
@@ -74,15 +76,11 @@ export function CredencialesList({ solicitudes }: { solicitudes: Solicitud[] }) 
     setSeleccionadas((prev) => (todasSeleccionadas ? new Set() : new Set(filtradas.map((s) => s.id))));
   }
 
-  function handleEliminar() {
-    const cantidad = seleccionadas.size;
-    if (cantidad === 0) return;
-    if (!window.confirm(`¿Eliminar ${cantidad} solicitud${cantidad === 1 ? "" : "es"} de credencial? Esta acción no se puede deshacer.`)) {
-      return;
-    }
+  function confirmarEliminar() {
     startEliminando(async () => {
       await eliminarSolicitudes(Array.from(seleccionadas));
       setSeleccionadas(new Set());
+      setConfirmando(false);
     });
   }
 
@@ -114,7 +112,7 @@ export function CredencialesList({ solicitudes }: { solicitudes: Solicitud[] }) 
           <button
             type="button"
             disabled={eliminando}
-            onClick={handleEliminar}
+            onClick={() => setConfirmando(true)}
             className="rounded-full bg-accent-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-accent-600 disabled:opacity-60"
           >
             {eliminando ? "Eliminando…" : `Eliminar (${seleccionadas.size})`}
@@ -200,6 +198,15 @@ export function CredencialesList({ solicitudes }: { solicitudes: Solicitud[] }) 
           </p>
         )}
       </div>
+
+      <ConfirmDialog
+        open={confirmando}
+        title="Eliminar solicitudes"
+        description={`¿Eliminar ${seleccionadas.size} solicitud${seleccionadas.size === 1 ? "" : "es"} de credencial? Esta acción no se puede deshacer.`}
+        pending={eliminando}
+        onConfirm={confirmarEliminar}
+        onCancel={() => setConfirmando(false)}
+      />
     </div>
   );
 }
