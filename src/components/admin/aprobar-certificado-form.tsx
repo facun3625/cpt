@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { aprobarSolicitud } from "@/app/admin/(panel)/certificados/actions";
 import { SubmitButtonPending } from "@/components/admin/submit-button-pending";
+import { FirmasChecklist } from "@/components/admin/firmas-checklist";
 
 const inputClass =
   "mt-1 w-full rounded-lg border border-surface-border px-3 py-2 text-sm outline-none focus:border-primary-400";
@@ -12,7 +13,13 @@ const MESES = [
   "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
 ];
 
-export function AprobarCertificadoForm({ id }: { id: string }) {
+export function AprobarCertificadoForm({
+  id,
+  firmas,
+}: {
+  id: string;
+  firmas: { id: string; nombre: string; titulo: string }[];
+}) {
   const [modelo, setModelo] = useState<"ANUAL" | "CUOTAS">("ANUAL");
   const anioActual = new Date().getFullYear();
 
@@ -72,6 +79,8 @@ export function AprobarCertificadoForm({ id }: { id: string }) {
           </div>
         </div>
       )}
+
+      <FirmasChecklist firmas={firmas} labelClassName="text-emerald-800" />
 
       <SubmitButtonPending
         pendingText="Generando certificado…"

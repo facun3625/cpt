@@ -164,13 +164,13 @@ model SmtpSettings {
 }
 
 model Firma {
-  id            String  @id @default(cuid())
-  nombre        String
-  titulo        String
-  firmaUrl      String
-  orden         Int     @default(0)
-  enCertificado Boolean @default(true)
-  enCredencial  Boolean @default(false)
+  id           String                 @id @default(cuid())
+  nombre       String
+  titulo       String
+  firmaUrl     String
+  orden        Int                    @default(0)
+  certificados CertificadoSolicitud[]
+  credenciales CredencialSolicitud[]
 }
 
 enum SolicitudEstado {
@@ -216,6 +216,7 @@ model CertificadoSolicitud {
   expiraEn             DateTime?
   createdAt            DateTime           @default(now())
   revisadoEn           DateTime?
+  firmas               Firma[]
 }
 
 model CredencialSolicitud {
@@ -235,6 +236,7 @@ model CredencialSolicitud {
   expiraEn           DateTime?
   createdAt          DateTime         @default(now())
   revisadoEn         DateTime?
+  firmas             Firma[]
 }
 
 model Especialidad {

@@ -131,7 +131,7 @@ export function CredencialRequestForm() {
             </div>
             <div>
               <label htmlFor="cred-foto" className="text-xs font-medium text-ink-500">
-                Foto para la credencial (JPG o PNG)
+                Foto para la credencial
               </label>
               <div className="mt-1 flex items-center gap-4">
                 {fotoPreview && (
@@ -142,7 +142,7 @@ export function CredencialRequestForm() {
                   id="cred-foto"
                   name="foto"
                   type="file"
-                  accept="image/jpeg,image/png"
+                  accept="image/*"
                   required
                   onChange={handleFotoChange}
                   className="block text-sm text-ink-600 file:mr-3 file:cursor-pointer file:rounded-full file:border-0 file:bg-primary-700 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-primary-900"

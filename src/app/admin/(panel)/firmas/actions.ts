@@ -15,13 +15,10 @@ export async function createFirma(formData: FormData) {
   const file = formData.get("firma");
   if (!nombre || !titulo || !(file instanceof File) || file.size === 0) return;
 
-  const enCertificado = formData.get("enCertificado") === "on";
-  const enCredencial = formData.get("enCredencial") === "on";
-
   const firmaUrl = await saveUploadedSignature(file);
   if (!firmaUrl) return;
   const count = await prisma.firma.count();
-  await prisma.firma.create({ data: { nombre, titulo, firmaUrl, orden: count, enCertificado, enCredencial } });
+  await prisma.firma.create({ data: { nombre, titulo, firmaUrl, orden: count } });
 
   revalidatePath("/", "layout");
   redirect(`${PATH}?ok=1`);
@@ -33,14 +30,9 @@ export async function updateFirma(id: string, formData: FormData) {
   const titulo = String(formData.get("titulo") ?? "").trim();
   if (!nombre || !titulo) return;
 
-  const enCertificado = formData.get("enCertificado") === "on";
-  const enCredencial = formData.get("enCredencial") === "on";
-
-  const data: { nombre: string; titulo: string; firmaUrl?: string; enCertificado: boolean; enCredencial: boolean } = {
+  const data: { nombre: string; titulo: string; firmaUrl?: string } = {
     nombre,
     titulo,
-    enCertificado,
-    enCredencial,
   };
 
   const file = formData.get("firma");

@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getCertificadoSolicitudById } from "@/lib/site-info";
+import { getCertificadoSolicitudById, getFirmas } from "@/lib/site-info";
 import { updateSolicitud, rechazarSolicitud } from "../actions";
 import { AprobarCertificadoForm } from "@/components/admin/aprobar-certificado-form";
 
@@ -21,7 +21,7 @@ function toDateInputValue(date: Date | null) {
 
 export default async function CertificadoDetallePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const solicitud = await getCertificadoSolicitudById(id);
+  const [solicitud, firmas] = await Promise.all([getCertificadoSolicitudById(id), getFirmas()]);
   if (!solicitud) notFound();
 
   const esPendiente = solicitud.estado === "PENDIENTE";
@@ -164,7 +164,7 @@ export default async function CertificadoDetallePage({ params }: { params: Promi
 
       {esPendiente && (
         <div className="mt-6 grid gap-4 sm:grid-cols-2">
-          <AprobarCertificadoForm id={solicitud.id} />
+          <AprobarCertificadoForm id={solicitud.id} firmas={firmas} />
 
           <form action={rechazarSolicitud.bind(null, solicitud.id)} className="rounded-xl border border-accent-500/20 bg-accent-500/5 p-5">
             <h2 className="text-sm font-semibold text-accent-700">Rechazar solicitud</h2>

@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getCredencialSolicitudById } from "@/lib/site-info";
+import { getCredencialSolicitudById, getFirmas } from "@/lib/site-info";
 import {
   updateSolicitud,
   aprobarSolicitud,
@@ -9,6 +9,7 @@ import {
   regenerarCredencial,
 } from "../actions";
 import { SubmitButtonPending } from "@/components/admin/submit-button-pending";
+import { FirmasChecklist } from "@/components/admin/firmas-checklist";
 
 const inputClass =
   "mt-1 w-full rounded-lg border border-surface-border px-3 py-2 text-sm outline-none focus:border-primary-400";
@@ -27,8 +28,10 @@ function toDateInputValue(date: Date | null) {
 
 export default async function CredencialDetallePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const solicitud = await getCredencialSolicitudById(id);
+  const [solicitud, firmas] = await Promise.all([getCredencialSolicitudById(id), getFirmas()]);
   if (!solicitud) notFound();
+
+  const firmaIdsActuales = solicitud.firmas.map((f) => f.id);
 
   const puedeAprobarRechazar = solicitud.estado === "PENDIENTE" || solicitud.estado === "RECHAZADO";
   const puedeGestionarEmitida = solicitud.estado === "APROBADO";
@@ -131,6 +134,7 @@ export default async function CredencialDetallePage({ params }: { params: Promis
             <p className="mt-1 text-xs text-emerald-700">
               Genera la credencial en PDF con QR de verificación y envía el enlace de descarga por email.
             </p>
+            <FirmasChecklist firmas={firmas} labelClassName="text-emerald-800" />
             <SubmitButtonPending
               pendingText="Generando credencial…"
               className="mt-3 flex items-center gap-2 rounded-full bg-emerald-600 px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-700"
@@ -181,10 +185,11 @@ export default async function CredencialDetallePage({ params }: { params: Promis
             </>
           )}
           {puedeRegenerar && (
-            <form action={regenerarCredencial.bind(null, solicitud.id)}>
+            <form action={regenerarCredencial.bind(null, solicitud.id)} className="w-full max-w-xs">
+              <FirmasChecklist firmas={firmas} seleccionadas={firmaIdsActuales} labelClassName="text-ink-500" />
               <SubmitButtonPending
                 pendingText="Generando credencial…"
-                className="flex items-center gap-2 rounded-full border border-surface-border px-5 py-2 text-sm font-semibold text-ink-600 transition-colors hover:border-primary-400 hover:text-primary-700"
+                className="mt-3 flex items-center gap-2 rounded-full border border-surface-border px-5 py-2 text-sm font-semibold text-ink-600 transition-colors hover:border-primary-400 hover:text-primary-700"
               >
                 Generar nueva credencial (con los datos actuales)
               </SubmitButtonPending>

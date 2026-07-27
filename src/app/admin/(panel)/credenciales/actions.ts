@@ -4,7 +4,6 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { verifyAdminSession } from "@/lib/admin-dal";
-import { getFirmasCredencial } from "@/lib/site-info";
 import { generateCredencialPdf } from "@/lib/credencial-pdf";
 import { saveCredencialPdf } from "@/lib/upload";
 import { sendMail } from "@/lib/mailer";
@@ -41,13 +40,13 @@ export async function updateSolicitud(id: string, formData: FormData) {
   redirect(`${PATH}/${id}?ok=1`);
 }
 
-async function emitirCredencial(id: string) {
+async function emitirCredencial(id: string, firmaIds: string[]) {
   const solicitud = await prisma.credencialSolicitud.findUnique({ where: { id } });
   if (!solicitud) return null;
 
   const siteUrl = process.env.SITE_URL || "http://localhost:3000";
   const verificationUrl = `${siteUrl}/verificar-credencial/${solicitud.codigoVerificacion}`;
-  const firmas = await getFirmasCredencial();
+  const firmas = await prisma.firma.findMany({ where: { id: { in: firmaIds } }, orderBy: { orden: "asc" } });
 
   const pdfBuffer = await generateCredencialPdf({
     nombre: solicitud.nombre,
@@ -67,16 +66,23 @@ async function emitirCredencial(id: string) {
 
   await prisma.credencialSolicitud.update({
     where: { id },
-    data: { estado: "APROBADO", credencialUrl, expiraEn, revisadoEn: new Date() },
+    data: {
+      estado: "APROBADO",
+      credencialUrl,
+      expiraEn,
+      revisadoEn: new Date(),
+      firmas: { set: firmas.map((f) => ({ id: f.id })) },
+    },
   });
 
   return { solicitud, credencialUrl, siteUrl };
 }
 
-export async function aprobarSolicitud(id: string) {
+export async function aprobarSolicitud(id: string, formData: FormData) {
   const session = await verifyAdminSession();
 
-  const result = await emitirCredencial(id);
+  const firmaIds = formData.getAll("firmaIds").map(String);
+  const result = await emitirCredencial(id, firmaIds);
   if (!result) return;
   const { solicitud, credencialUrl, siteUrl } = result;
 
@@ -123,10 +129,11 @@ export async function rechazarSolicitud(id: string, formData: FormData) {
   redirect(`${PATH}/${id}?ok=1`);
 }
 
-export async function regenerarCredencial(id: string) {
+export async function regenerarCredencial(id: string, formData: FormData) {
   const session = await verifyAdminSession();
 
-  const result = await emitirCredencial(id);
+  const firmaIds = formData.getAll("firmaIds").map(String);
+  const result = await emitirCredencial(id, firmaIds);
   if (!result) return;
 
   await logActivity(

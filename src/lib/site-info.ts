@@ -109,14 +109,6 @@ export async function getFirmas() {
   return prisma.firma.findMany({ orderBy: { orden: "asc" } });
 }
 
-export async function getFirmasCertificado() {
-  return prisma.firma.findMany({ where: { enCertificado: true }, orderBy: { orden: "asc" } });
-}
-
-export async function getFirmasCredencial() {
-  return prisma.firma.findMany({ where: { enCredencial: true }, orderBy: { orden: "asc" } });
-}
-
 export async function getCertificadoSolicitudes() {
   return prisma.certificadoSolicitud.findMany({ orderBy: { createdAt: "desc" } });
 }
@@ -134,7 +126,7 @@ export async function getCredencialSolicitudes() {
 }
 
 export async function getCredencialSolicitudById(id: string) {
-  return prisma.credencialSolicitud.findUnique({ where: { id } });
+  return prisma.credencialSolicitud.findUnique({ where: { id }, include: { firmas: true } });
 }
 
 export async function getCredencialSolicitudByCodigo(codigoVerificacion: string) {

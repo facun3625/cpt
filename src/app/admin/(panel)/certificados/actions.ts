@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { verifyAdminSession } from "@/lib/admin-dal";
-import { getFirmasCertificado, getSedes } from "@/lib/site-info";
+import { getSedes } from "@/lib/site-info";
 import { generateCertificadoPdf } from "@/lib/certificado-pdf";
 import { saveCertificadoPdf } from "@/lib/upload";
 import { sendMail } from "@/lib/mailer";
@@ -66,7 +66,11 @@ export async function aprobarSolicitud(id: string, formData: FormData) {
   const solicitud = await prisma.certificadoSolicitud.findUnique({ where: { id } });
   if (!solicitud) return;
 
-  const [firmas, sedes] = await Promise.all([getFirmasCertificado(), getSedes()]);
+  const firmaIds = formData.getAll("firmaIds").map(String);
+  const [firmas, sedes] = await Promise.all([
+    prisma.firma.findMany({ where: { id: { in: firmaIds } }, orderBy: { orden: "asc" } }),
+    getSedes(),
+  ]);
   const siteUrl = process.env.SITE_URL || "http://localhost:3000";
   const verificationUrl = `${siteUrl}/verificar-certificado/${solicitud.codigoVerificacion}`;
 
@@ -103,6 +107,7 @@ export async function aprobarSolicitud(id: string, formData: FormData) {
       cantidadCuotas,
       cuotaVencimientoMes,
       cuotaVencimientoAnio,
+      firmas: { set: firmas.map((f) => ({ id: f.id })) },
     },
   });
 

@@ -13,8 +13,8 @@ export default async function FirmasAdminPage() {
     <div className="px-8 py-8">
       <h1 className="text-xl font-semibold text-ink-900">Firmas de autoridades</h1>
       <p className="mt-1 text-sm text-ink-600">
-        Firmas institucionales reutilizables (certificados de matriculación y otros documentos que se emitan desde el
-        panel). Subí la firma como imagen PNG con fondo transparente.
+        Firmas institucionales reutilizables. Al aprobar un certificado o una credencial, el administrador elige
+        cuáles de estas firmas incluir. Subí la imagen en cualquier formato — se convierte automáticamente.
       </p>
 
       <div className="mt-6 space-y-4">
@@ -36,27 +36,7 @@ export default async function FirmasAdminPage() {
             </div>
             <div>
               <label className="text-xs font-medium text-ink-500">Reemplazar firma (opcional)</label>
-              <input name="firma" type="file" accept="image/png,image/*" className={fileInputClass} />
-            </div>
-            <div className="flex w-full gap-6">
-              <label className="flex items-center gap-2 text-sm text-ink-700">
-                <input
-                  type="checkbox"
-                  name="enCertificado"
-                  defaultChecked={firma.enCertificado}
-                  className="h-4 w-4 rounded border-surface-border"
-                />
-                Usar en Certificado
-              </label>
-              <label className="flex items-center gap-2 text-sm text-ink-700">
-                <input
-                  type="checkbox"
-                  name="enCredencial"
-                  defaultChecked={firma.enCredencial}
-                  className="h-4 w-4 rounded border-surface-border"
-                />
-                Usar en Credencial
-              </label>
+              <input name="firma" type="file" accept="image/*" className={fileInputClass} />
             </div>
             <button
               type="submit"
@@ -90,18 +70,8 @@ export default async function FirmasAdminPage() {
             <input name="titulo" placeholder="Ej: Presidente" required className={inputClass} />
           </div>
           <div>
-            <label className="text-xs font-medium text-ink-500">Firma (PNG)</label>
-            <input name="firma" type="file" accept="image/png,image/*" required className={fileInputClass} />
-          </div>
-          <div className="flex w-full gap-6">
-            <label className="flex items-center gap-2 text-sm text-ink-700">
-              <input type="checkbox" name="enCertificado" defaultChecked className="h-4 w-4 rounded border-surface-border" />
-              Usar en Certificado
-            </label>
-            <label className="flex items-center gap-2 text-sm text-ink-700">
-              <input type="checkbox" name="enCredencial" className="h-4 w-4 rounded border-surface-border" />
-              Usar en Credencial
-            </label>
+            <label className="text-xs font-medium text-ink-500">Firma (imagen)</label>
+            <input name="firma" type="file" accept="image/*" required className={fileInputClass} />
           </div>
           <button
             type="submit"
