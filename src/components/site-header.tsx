@@ -219,19 +219,28 @@ export function SiteHeader({
               onMouseLeave={() => item.children && setOpenSubmenu(null)}
             >
               {index > 0 && <span className="h-4 w-px bg-white/20" aria-hidden="true" />}
-              <Link
-                href={item.href}
-                target={item.external ? "_blank" : undefined}
-                rel={item.external ? "noopener noreferrer" : undefined}
-                className="flex items-center gap-1 whitespace-nowrap px-4 py-2 text-sm font-medium text-white/85 transition-colors hover:text-white"
-              >
-                {item.label}
-                {item.children && (
+              {item.children ? (
+                <button
+                  type="button"
+                  onClick={() => setOpenSubmenu(openSubmenu === item.label ? null : item.label)}
+                  aria-expanded={openSubmenu === item.label}
+                  className="flex items-center gap-1 whitespace-nowrap px-4 py-2 text-sm font-medium text-white/85 transition-colors hover:text-white"
+                >
+                  {item.label}
                   <svg width="10" height="6" viewBox="0 0 10 6" fill="none" aria-hidden="true">
                     <path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
-                )}
-              </Link>
+                </button>
+              ) : (
+                <Link
+                  href={item.href}
+                  target={item.external ? "_blank" : undefined}
+                  rel={item.external ? "noopener noreferrer" : undefined}
+                  className="flex items-center gap-1 whitespace-nowrap px-4 py-2 text-sm font-medium text-white/85 transition-colors hover:text-white"
+                >
+                  {item.label}
+                </Link>
+              )}
 
               {item.children && (
                 <div

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getArancelesInfo, getArancelGrupos, getValorM2Status } from "@/lib/site-info";
+import { getArancelesInfo, getArancelGrupos, getValorM2Status, getEscalaHonorariosArchivo } from "@/lib/site-info";
 import { formatCurrency } from "@/lib/format";
 import {
   updateInfo,
@@ -9,18 +9,30 @@ import {
   createItem,
   updateItem,
   deleteItem,
+  subirEscalaHonorarios,
 } from "./actions";
 
 const inputClass =
   "mt-1 w-full rounded-lg border border-surface-border px-3 py-2 text-sm outline-none focus:border-primary-400";
+const fileInputClass =
+  "mt-2 block text-sm text-ink-600 file:mr-3 file:cursor-pointer file:rounded-full file:border-0 file:bg-primary-700 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-primary-900";
+
+const dateFormatter = new Intl.DateTimeFormat("es-AR", {
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+});
 
 const ADICIONAL_LEY_4889_PCT = 0.1;
 
 export default async function ArancelesAdminPage() {
-  const [info, grupos, valorM2Status] = await Promise.all([
+  const [info, grupos, valorM2Status, escalaArchivo] = await Promise.all([
     getArancelesInfo(),
     getArancelGrupos(),
     getValorM2Status(),
+    getEscalaHonorariosArchivo(),
   ]);
   const numeroBase = valorM2Status.current?.valor ?? 0;
   const gruposComunes = grupos.filter((g) => !g.esHonorarioMinimo);
@@ -60,6 +72,38 @@ export default async function ArancelesAdminPage() {
           </button>
         </div>
       </form>
+
+      <h2 className="mt-12 text-xs font-semibold uppercase tracking-wide text-ink-400">Escala de Honorarios (PDF)</h2>
+      <div className="mt-4 rounded-xl border border-surface-border bg-white p-5">
+        <p className="text-sm text-ink-600">
+          El botón "Escala de Honorarios" del menú público abre este PDF en una pestaña nueva. Subí un archivo para
+          reemplazar el actual.
+        </p>
+        {escalaArchivo && (
+          <p className="mt-2 text-xs text-ink-400">
+            Archivo actual:{" "}
+            <a href={escalaArchivo.url} target="_blank" rel="noopener noreferrer" className="font-semibold text-primary-700 hover:text-primary-900">
+              {escalaArchivo.nombreArchivo}
+            </a>{" "}
+            · subido el {dateFormatter.format(escalaArchivo.uploadedAt)}
+          </p>
+        )}
+        {!escalaArchivo && (
+          <p className="mt-2 text-xs text-accent-600">Todavía no se cargó ningún archivo — el botón público no funcionará hasta que subas uno.</p>
+        )}
+        <form action={subirEscalaHonorarios} className="mt-4 flex flex-wrap items-end gap-3">
+          <div>
+            <label className="text-xs font-medium text-ink-500">Archivo PDF</label>
+            <input name="archivo" type="file" accept="application/pdf" required className={fileInputClass} />
+          </div>
+          <button
+            type="submit"
+            className="rounded-full bg-primary-700 px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary-900"
+          >
+            {escalaArchivo ? "Reemplazar archivo" : "Subir archivo"}
+          </button>
+        </form>
+      </div>
 
       <h2 className="mt-12 text-xs font-semibold uppercase tracking-wide text-ink-400">Grupos de aranceles</h2>
       <div className="mt-4 space-y-6">

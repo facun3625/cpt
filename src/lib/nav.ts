@@ -32,7 +32,7 @@ export const mainNav: NavItem[] = [
     href: "/oficina-tecnica",
     children: [
       { label: "Aranceles", href: "/oficina-tecnica/aranceles" },
-      { label: "Escala de Honorarios", href: "/oficina-tecnica/escala-honorarios" },
+      { label: "Escala de Honorarios", href: "/oficina-tecnica/escala-honorarios", external: true },
     ],
   },
   {

@@ -57,6 +57,10 @@ export async function getArancelesInfo() {
   return info ?? { id: "aranceles", vigenciaFecha: "" };
 }
 
+export async function getEscalaHonorariosArchivo() {
+  return prisma.escalaHonorariosArchivo.findUnique({ where: { id: "escala-honorarios" } });
+}
+
 export async function getArancelGrupos() {
   return prisma.arancelGrupo.findMany({
     orderBy: { orden: "asc" },

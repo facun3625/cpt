@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { verifyAdminSession } from "@/lib/admin-dal";
+import { saveEscalaHonorariosPdf, deleteUploadedFile } from "@/lib/upload";
 
 const PATH = "/admin/aranceles";
 
@@ -17,6 +18,27 @@ export async function updateInfo(formData: FormData) {
     update: { vigenciaFecha },
     create: { id: "aranceles", vigenciaFecha },
   });
+  revalidatePath("/", "layout");
+  redirect(`${PATH}?ok=1`);
+}
+
+export async function subirEscalaHonorarios(formData: FormData) {
+  await verifyAdminSession();
+  const file = formData.get("archivo");
+  if (!(file instanceof File) || file.size === 0) return;
+
+  const url = await saveEscalaHonorariosPdf(file);
+  if (!url) return;
+
+  const existente = await prisma.escalaHonorariosArchivo.findUnique({ where: { id: "escala-honorarios" } });
+  if (existente) await deleteUploadedFile(existente.url);
+
+  await prisma.escalaHonorariosArchivo.upsert({
+    where: { id: "escala-honorarios" },
+    update: { url, nombreArchivo: file.name, uploadedAt: new Date() },
+    create: { id: "escala-honorarios", url, nombreArchivo: file.name },
+  });
+
   revalidatePath("/", "layout");
   redirect(`${PATH}?ok=1`);
 }

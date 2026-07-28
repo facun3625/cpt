@@ -43,7 +43,7 @@ Páginas del sitio a las que podés derivar al usuario según el tema de su cons
 - Certificado de matriculación (online): /matriculacion/certificado
 - Credencial digital (online): /matriculacion/credencial
 - Aranceles de Oficina Técnica: /oficina-tecnica/aranceles
-- Escala de Honorarios: /oficina-tecnica/escala-honorarios
+- Escala de Honorarios (descarga un PDF): /oficina-tecnica/escala-honorarios
 - Noticias: /noticias
 - Capacitaciones: /de-interes/capacitaciones
 - Repositorio de archivos (formularios, reglamentos, circulares, manuales): /de-interes/descargas

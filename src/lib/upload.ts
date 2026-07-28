@@ -10,6 +10,7 @@ const CERTIFICADOS_DIR = path.join(process.cwd(), "public", "uploads", "certific
 const CREDENCIALES_FOTOS_DIR = path.join(process.cwd(), "public", "uploads", "credenciales-fotos");
 const CREDENCIALES_DIR = path.join(process.cwd(), "public", "uploads", "credenciales");
 const MARKETING_DIR = path.join(process.cwd(), "public", "uploads", "marketing");
+const ESCALA_HONORARIOS_DIR = path.join(process.cwd(), "public", "uploads", "escala-honorarios");
 const ALLOWED_DOCUMENT_EXTENSIONS = ["pdf", "zip"];
 // pdfkit sólo soporta JPEG y PNG al incrustar imágenes en el PDF de la credencial
 const ALLOWED_IMAGE_EXTENSIONS = ["jpg", "jpeg", "png"];
@@ -97,6 +98,19 @@ export async function saveUploadedMarketingImage(file: File): Promise<string | n
 
   await writeFile(path.join(MARKETING_DIR, filename), buffer);
   return `/uploads/marketing/${filename}`;
+}
+
+export async function saveEscalaHonorariosPdf(file: File): Promise<string | null> {
+  const extension = path.extname(file.name).slice(1).toLowerCase();
+  if (extension !== "pdf") return null;
+
+  await mkdir(ESCALA_HONORARIOS_DIR, { recursive: true });
+
+  const filename = `${crypto.randomUUID()}.pdf`;
+  const buffer = Buffer.from(await file.arrayBuffer());
+
+  await writeFile(path.join(ESCALA_HONORARIOS_DIR, filename), buffer);
+  return `/uploads/escala-honorarios/${filename}`;
 }
 
 export async function deleteUploadedFile(publicUrl: string) {

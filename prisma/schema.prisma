@@ -64,6 +64,13 @@ model ArancelesInfo {
   vigenciaFecha String
 }
 
+model EscalaHonorariosArchivo {
+  id            String   @id @default("escala-honorarios")
+  url           String
+  nombreArchivo String
+  uploadedAt    DateTime @default(now())
+}
+
 model ArancelGrupo {
   id                String        @id @default(cuid())
   titulo            String
