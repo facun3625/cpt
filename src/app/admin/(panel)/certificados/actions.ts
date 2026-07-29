@@ -67,6 +67,7 @@ export async function aprobarSolicitud(id: string, formData: FormData) {
   if (!solicitud) return;
 
   const firmaIds = formData.getAll("firmaIds").map(String);
+  const incluirFechaMatriculacion = formData.get("incluirFechaMatriculacion") === "on";
   const [firmas, sedes] = await Promise.all([
     prisma.firma.findMany({ where: { id: { in: firmaIds } }, orderBy: { orden: "asc" } }),
     getSedes(),
@@ -82,6 +83,8 @@ export async function aprobarSolicitud(id: string, formData: FormData) {
     tituloProfesional: solicitud.tituloProfesional,
     domicilio: solicitud.domicilio,
     ciudad: solicitud.ciudad,
+    fechaMatriculacion: solicitud.fechaMatriculacion,
+    incluirFechaMatriculacion,
     notasAdicionales: solicitud.notasAdicionales,
     codigoVerificacion: solicitud.codigoVerificacion,
     verificationUrl,

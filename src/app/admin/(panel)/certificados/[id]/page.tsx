@@ -164,7 +164,7 @@ export default async function CertificadoDetallePage({ params }: { params: Promi
 
       {esPendiente && (
         <div className="mt-6 grid gap-4 sm:grid-cols-2">
-          <AprobarCertificadoForm id={solicitud.id} firmas={firmas} />
+          <AprobarCertificadoForm id={solicitud.id} firmas={firmas} fechaMatriculacion={solicitud.fechaMatriculacion} />
 
           <form action={rechazarSolicitud.bind(null, solicitud.id)} className="rounded-xl border border-accent-500/20 bg-accent-500/5 p-5">
             <h2 className="text-sm font-semibold text-accent-700">Rechazar solicitud</h2>

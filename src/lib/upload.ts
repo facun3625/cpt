@@ -11,7 +11,7 @@ const CREDENCIALES_FOTOS_DIR = path.join(process.cwd(), "public", "uploads", "cr
 const CREDENCIALES_DIR = path.join(process.cwd(), "public", "uploads", "credenciales");
 const MARKETING_DIR = path.join(process.cwd(), "public", "uploads", "marketing");
 const ESCALA_HONORARIOS_DIR = path.join(process.cwd(), "public", "uploads", "escala-honorarios");
-const ALLOWED_DOCUMENT_EXTENSIONS = ["pdf", "zip"];
+const ALLOWED_DOCUMENT_EXTENSIONS = ["pdf", "zip", "doc", "docx"];
 // pdfkit sólo soporta JPEG y PNG al incrustar imágenes en el PDF de la credencial
 const ALLOWED_IMAGE_EXTENSIONS = ["jpg", "jpeg", "png"];
 

@@ -13,7 +13,7 @@ export default async function RepositorioAdminPage() {
         <div>
           <h1 className="text-xl font-semibold text-ink-900">Repositorio de archivos</h1>
           <p className="mt-1 text-sm text-ink-600">
-            {archivos.length} {archivos.length === 1 ? "archivo" : "archivos"} — solo se aceptan PDF o ZIP.
+            {archivos.length} {archivos.length === 1 ? "archivo" : "archivos"} — se aceptan PDF, Word (doc/docx) o ZIP.
           </p>
         </div>
         <NuevoArchivoModal />

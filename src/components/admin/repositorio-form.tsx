@@ -31,7 +31,7 @@ export function RepositorioForm({ archivo }: { archivo: Archivo }) {
             Archivo actual: <span className="font-semibold uppercase">{archivo.extension}</span> ·{" "}
             {formatFileSize(archivo.tamano)}
           </p>
-          <input name="archivo" type="file" accept=".pdf,.zip" className={fileInputClass} />
+          <input name="archivo" type="file" accept=".pdf,.zip,.doc,.docx" className={fileInputClass} />
         </div>
 
         <button

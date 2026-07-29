@@ -47,8 +47,8 @@ export function NuevoArchivoModal() {
                 <input name="titulo" required autoFocus className={inputClass} />
               </div>
               <div>
-                <label className="text-xs font-medium text-ink-500">Archivo (PDF o ZIP)</label>
-                <input name="archivo" type="file" accept=".pdf,.zip" required className={fileInputClass} />
+                <label className="text-xs font-medium text-ink-500">Archivo (PDF, Word o ZIP)</label>
+                <input name="archivo" type="file" accept=".pdf,.zip,.doc,.docx" required className={fileInputClass} />
               </div>
               <button
                 type="submit"

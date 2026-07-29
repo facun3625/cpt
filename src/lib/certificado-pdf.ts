@@ -12,6 +12,8 @@ export type CertificadoPdfData = {
   tituloProfesional: string | null;
   domicilio: string | null;
   ciudad: string | null;
+  fechaMatriculacion: Date | null;
+  incluirFechaMatriculacion: boolean;
   notasAdicionales: string | null;
   codigoVerificacion: string;
   verificationUrl: string;
@@ -46,6 +48,13 @@ const CENTENAS = ["", "ciento", "doscientos", "trescientos", "cuatrocientos", "q
 function formatearDni(dni: string): string {
   return dni.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 }
+
+const dateFormatter = new Intl.DateTimeFormat("es-AR", {
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric",
+  timeZone: "UTC",
+});
 
 function numeroATexto(n: number): string {
   if (n === 0) return "cero";
@@ -136,6 +145,10 @@ export async function generateCertificadoPdf(data: CertificadoPdfData): Promise<
 
     const nombreCompleto = `${data.apellido.toUpperCase()}, ${data.nombre}`;
     const tituloTexto = data.tituloProfesional ? `${data.tituloProfesional} ` : "";
+    const fechaMatriculacionTexto =
+      data.incluirFechaMatriculacion && data.fechaMatriculacion
+        ? `, matriculado/a desde el ${dateFormatter.format(data.fechaMatriculacion)}`
+        : "";
     const domicilioTexto = data.domicilio
       ? `, fijando su domicilio legal en ${data.domicilio}${data.ciudad ? ` de la ciudad de ${data.ciudad}` : ""}`
       : "";
@@ -143,20 +156,20 @@ export async function generateCertificadoPdf(data: CertificadoPdfData): Promise<
 
     const parrafoPrincipal =
       data.modelo === "CUOTAS"
-        ? `Certificamos que el ${tituloTexto}${nombreCompleto}, D.N.I. N° ${formatearDni(data.numeroDocumento)}, se ha matriculado ` +
+        ? `Certificamos que el/la ${tituloTexto}${nombreCompleto}, D.N.I. N° ${formatearDni(data.numeroDocumento)}, se ha matriculado ` +
           `en este Colegio Profesional de Maestros Mayores de Obras y Técnicos de la Provincia de Santa Fe - Distrito I ` +
-          `bajo el N° ${data.numeroMatricula}${domicilioTexto}, en cumplimiento de lo dispuesto en la Ley N° 10.946 y ` +
+          `bajo el N° ${data.numeroMatricula}${fechaMatriculacionTexto}${domicilioTexto}, en cumplimiento de lo dispuesto en la Ley N° 10.946 y ` +
           `Decreto 2636, y habiendo establecido esta Institución el pago de la matrícula en ${numeroATexto(data.cantidadCuotas ?? 0)} ` +
-          `cuotas bimestrales y consecutivas, quedará por lo tanto habilitado para ejercer su profesión dentro del ` +
+          `cuotas bimestrales y consecutivas, quedará por lo tanto habilitado/a para ejercer su profesión dentro del ` +
           `territorio de esta Provincia, mientras cumplimente con el pago de las cuotas sucesivas, hasta el mes de ` +
           `${MESES[(data.cuotaVencimientoMes ?? 1) - 1]} de ${data.cuotaVencimientoAnio} - vencimiento de la ` +
           `${ORDINALES_FEM[data.cantidadCuotas ?? 0] ?? "última"} y última cuota del "derecho de inscripción anual"- ` +
           `según lo establecido en la Resolución N° 98/96 del Cuerpo, fecha en que se confeccionarán los padrones ` +
           `definitivos de matriculados habilitados para el año ${data.cuotaVencimientoAnio}.`
-        : `Certificamos que el ${tituloTexto}${nombreCompleto}, D.N.I. N° ${formatearDni(data.numeroDocumento)} se ha matriculado ` +
+        : `Certificamos que el/la ${tituloTexto}${nombreCompleto}, D.N.I. N° ${formatearDni(data.numeroDocumento)} se ha matriculado ` +
           `en este Colegio Profesional de Maestros Mayores de Obras y Técnicos de la Provincia de Santa Fe - Distrito I ` +
-          `bajo el N° ${data.numeroMatricula}${domicilioTexto}, en cumplimiento de lo dispuesto por el Art. 12 de la ` +
-          `Ley 10.946, estando por lo tanto habilitado para ejercer su profesión dentro del territorio de esta ` +
+          `bajo el N° ${data.numeroMatricula}${fechaMatriculacionTexto}${domicilioTexto}, en cumplimiento de lo dispuesto por el Art. 12 de la ` +
+          `Ley 10.946, estando por lo tanto habilitado/a para ejercer su profesión dentro del territorio de esta ` +
           `provincia durante el año ${anioActual}.`;
 
     doc.fontSize(11.5).font("Helvetica").fillColor("#14201d").text(parrafoPrincipal, {

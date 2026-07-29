@@ -16,9 +16,11 @@ const MESES = [
 export function AprobarCertificadoForm({
   id,
   firmas,
+  fechaMatriculacion,
 }: {
   id: string;
   firmas: { id: string; nombre: string; titulo: string }[];
+  fechaMatriculacion: Date | null;
 }) {
   const [modelo, setModelo] = useState<"ANUAL" | "CUOTAS">("ANUAL");
   const anioActual = new Date().getFullYear();
@@ -78,6 +80,13 @@ export function AprobarCertificadoForm({
             />
           </div>
         </div>
+      )}
+
+      {fechaMatriculacion && (
+        <label className="mt-3 flex items-center gap-2 text-xs font-medium text-emerald-800">
+          <input type="checkbox" name="incluirFechaMatriculacion" defaultChecked />
+          Incluir la fecha de matriculación en el texto del certificado
+        </label>
       )}
 
       <FirmasChecklist firmas={firmas} labelClassName="text-emerald-800" />
