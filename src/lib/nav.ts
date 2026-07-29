@@ -54,6 +54,15 @@ export const mainNav: NavItem[] = [
       { label: "Credencial digital", href: "/matriculacion/credencial" },
       { label: "Repositorio de archivos", href: "/de-interes/descargas" },
       { label: "Bolsa de Trabajo", href: "/bolsa-de-trabajo" },
+      {
+        label: "Imprimir boletas",
+        href: "https://web.archive.org/web/20240526202432/https://www.gesto.org.ar/cptsantafe/prof/login.php",
+        external: true,
+      },
+      {
+        label: "Tutorial tramitación Online de Expedientes Técnicos",
+        href: "/servicios-matriculados/tutorial-expedientes",
+      },
     ],
   },
 ];
