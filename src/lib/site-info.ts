@@ -1,5 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import { formatDate } from "@/lib/format";
+import type { MatriculadoHabilitado } from "@/generated/prisma/client";
+
+function normalizarMatricula(numeroMatricula: string): string {
+  return numeroMatricula.replace(/[^a-zA-Z0-9]/g, "");
+}
 
 export async function getSedes() {
   return prisma.sede.findMany({ orderBy: { orden: "asc" } });
@@ -98,11 +103,22 @@ export async function getMatriculados() {
 }
 
 export async function getMatriculadoByMatriculaYDocumento(numeroMatricula: string, numeroDocumento: string) {
-  return prisma.matriculadoHabilitado.findFirst({ where: { numeroMatricula, numeroDocumento } });
+  const resultados = await prisma.$queryRaw<MatriculadoHabilitado[]>`
+    SELECT * FROM "MatriculadoHabilitado"
+    WHERE regexp_replace("numeroMatricula", '[^a-zA-Z0-9]', '', 'g') = ${normalizarMatricula(numeroMatricula)}
+      AND "numeroDocumento" = ${numeroDocumento}
+    LIMIT 1
+  `;
+  return resultados[0] ?? null;
 }
 
 export async function getMatriculadoByMatricula(numeroMatricula: string) {
-  return prisma.matriculadoHabilitado.findFirst({ where: { numeroMatricula } });
+  const resultados = await prisma.$queryRaw<MatriculadoHabilitado[]>`
+    SELECT * FROM "MatriculadoHabilitado"
+    WHERE regexp_replace("numeroMatricula", '[^a-zA-Z0-9]', '', 'g') = ${normalizarMatricula(numeroMatricula)}
+    LIMIT 1
+  `;
+  return resultados[0] ?? null;
 }
 
 export async function getMatriculadosUploadInfo() {

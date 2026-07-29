@@ -41,6 +41,7 @@ export const mainNav: NavItem[] = [
     children: [
       { label: "Noticias", href: "/noticias" },
       { label: "Capacitaciones", href: "/de-interes/capacitaciones" },
+      { label: "Descargas Útiles", href: "/de-interes/descargas" },
       { label: "Links de interés", href: "/de-interes/links" },
     ],
   },
