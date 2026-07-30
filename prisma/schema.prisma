@@ -30,13 +30,13 @@ model ActivityLog {
 }
 
 model Sede {
-  id               String   @id @default(cuid())
-  nombre           String
-  direccion        String
-  telefono         String
-  orden            Int      @default(0)
-  mostrarEnHeader  Boolean  @default(false)
-  createdAt        DateTime @default(now())
+  id              String   @id @default(cuid())
+  nombre          String
+  direccion       String
+  telefono        String
+  orden           Int      @default(0)
+  mostrarEnHeader Boolean  @default(false)
+  createdAt       DateTime @default(now())
 }
 
 model ContactEmail {
@@ -48,8 +48,8 @@ model ContactEmail {
 }
 
 model SiteSettings {
-  id            String  @id @default("settings")
-  instagramUrl  String?
+  id           String  @id @default("settings")
+  instagramUrl String?
 }
 
 model ValorM2Entry {
@@ -94,18 +94,19 @@ enum NoticiaTipo {
 }
 
 model Noticia {
-  id              String          @id @default(cuid())
-  tipo            NoticiaTipo
-  slug            String          @unique
-  titulo          String
-  pretexto        String?
-  imagenDestacada String?
-  video           String?
-  enSliderHome    Boolean         @default(false)
-  orden           Int             @default(0)
-  publicadoEn     DateTime        @default(now())
-  createdAt       DateTime        @default(now())
-  bloques         NoticiaBloque[]
+  id                             String          @id @default(cuid())
+  tipo                           NoticiaTipo
+  slug                           String          @unique
+  titulo                         String
+  pretexto                       String?
+  imagenDestacada                String?
+  mostrarImagenDestacadaEnCuerpo Boolean         @default(true)
+  video                          String?
+  enSliderHome                   Boolean         @default(false)
+  orden                          Int             @default(0)
+  publicadoEn                    DateTime        @default(now())
+  createdAt                      DateTime        @default(now())
+  bloques                        NoticiaBloque[]
 }
 
 enum NoticiaBloqueTipo {
@@ -133,20 +134,20 @@ model RepositorioArchivo {
 }
 
 model MatriculadoHabilitado {
-  id                String    @id @default(cuid())
-  numeroDocumento   String
-  nombre            String
-  apellido          String
-  numeroMatricula   String    @unique
+  id                 String    @id @default(cuid())
+  numeroDocumento    String
+  nombre             String
+  apellido           String
+  numeroMatricula    String    @unique
   fechaMatriculacion DateTime?
-  email             String?
-  condicion         String?
-  titulo            String?
-  situacion         String?
-  domicilioLaboral  String?
-  codigoPostal      String?
-  idLocalidad       String?
-  createdAt         DateTime  @default(now())
+  email              String?
+  condicion          String?
+  titulo             String?
+  situacion          String?
+  domicilioLaboral   String?
+  codigoPostal       String?
+  idLocalidad        String?
+  createdAt          DateTime  @default(now())
 
   @@index([numeroDocumento])
 }
@@ -159,9 +160,9 @@ model MatriculaFechaRegistro {
 }
 
 model MatriculadosUpload {
-  id         String   @id @default("matriculados")
-  uploadedAt DateTime
-  cantidad   Int
+  id            String   @id @default("matriculados")
+  uploadedAt    DateTime
+  cantidad      Int
   nombreArchivo String
 }
 
@@ -254,12 +255,12 @@ model CredencialSolicitud {
 }
 
 model Especialidad {
-  id       String @id @default(cuid())
-  nombre   String @unique
-  orden    Int    @default(0)
+  id     String @id @default(cuid())
+  nombre String @unique
+  orden  Int    @default(0)
 
-  tecnicos   TecnicoBolsa[]
-  busquedas  BusquedaLaboral[]
+  tecnicos  TecnicoBolsa[]
+  busquedas BusquedaLaboral[]
 }
 
 model TecnicoBolsa {
@@ -293,18 +294,18 @@ enum BusquedaEstado {
 }
 
 model BusquedaLaboral {
-  id             String            @id @default(cuid())
+  id             String           @id @default(cuid())
   titulo         String
   empresa        String
   descripcion    String
   localidad      String
-  modalidad      ModalidadTrabajo  @default(PRESENCIAL)
+  modalidad      ModalidadTrabajo @default(PRESENCIAL)
   contacto       String
-  estado         BusquedaEstado    @default(ACTIVA)
+  estado         BusquedaEstado   @default(ACTIVA)
   fechaCierre    DateTime?
   especialidadId String?
-  especialidad   Especialidad?     @relation(fields: [especialidadId], references: [id])
-  createdAt      DateTime          @default(now())
+  especialidad   Especialidad?    @relation(fields: [especialidadId], references: [id])
+  createdAt      DateTime         @default(now())
 }
 
 model Suscriptor {

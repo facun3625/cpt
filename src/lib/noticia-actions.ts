@@ -72,6 +72,7 @@ export async function createNoticia(tipo: NoticiaTipo, formData: FormData) {
   const pretexto = String(formData.get("pretexto") ?? "").trim() || null;
   const video = String(formData.get("video") ?? "").trim() || null;
   const enSliderHome = formData.get("enSliderHome") === "on";
+  const mostrarImagenDestacadaEnCuerpo = formData.get("mostrarImagenDestacadaEnCuerpo") === "on";
   const bloques = parseBloques(formData);
 
   const imagenFile = formData.get("imagenDestacada");
@@ -85,7 +86,7 @@ export async function createNoticia(tipo: NoticiaTipo, formData: FormData) {
   const orden = (primerOrden._min.orden ?? 0) - 1;
 
   const noticia = await prisma.noticia.create({
-    data: { tipo, slug, titulo, pretexto, video, enSliderHome, imagenDestacada, orden },
+    data: { tipo, slug, titulo, pretexto, video, enSliderHome, imagenDestacada, mostrarImagenDestacadaEnCuerpo, orden },
   });
 
   await guardarBloques(noticia.id, bloques);
@@ -102,10 +103,11 @@ export async function updateNoticia(id: string, tipo: NoticiaTipo, formData: For
   const pretexto = String(formData.get("pretexto") ?? "").trim() || null;
   const video = String(formData.get("video") ?? "").trim() || null;
   const enSliderHome = formData.get("enSliderHome") === "on";
+  const mostrarImagenDestacadaEnCuerpo = formData.get("mostrarImagenDestacadaEnCuerpo") === "on";
   const bloques = parseBloques(formData);
 
   const imagenFile = formData.get("imagenDestacada");
-  const data: Record<string, unknown> = { titulo, pretexto, video, enSliderHome };
+  const data: Record<string, unknown> = { titulo, pretexto, video, enSliderHome, mostrarImagenDestacadaEnCuerpo };
   if (imagenFile instanceof File && imagenFile.size > 0) {
     data.imagenDestacada = await saveUploadedImage(imagenFile);
   }

@@ -8,6 +8,7 @@ type NoticiaWithBloques = {
   titulo: string;
   pretexto: string | null;
   imagenDestacada: string | null;
+  mostrarImagenDestacadaEnCuerpo: boolean;
   video: string | null;
   enSliderHome: boolean;
   bloques: { tipo: "TEXTO" | "IMAGEN"; texto: string | null; imagenUrl: string | null }[];
@@ -57,6 +58,18 @@ export function NoticiaForm({
 
         <div className="space-y-5">
           <ImagenDestacadaInput name="imagenDestacada" initialUrl={noticia?.imagenDestacada ?? null} />
+          <label className="flex items-center gap-2 text-sm text-ink-600">
+            <input
+              type="checkbox"
+              name="mostrarImagenDestacadaEnCuerpo"
+              defaultChecked={noticia?.mostrarImagenDestacadaEnCuerpo ?? true}
+              className="h-4 w-4 rounded border-surface-border"
+            />
+            Mostrar esta imagen también en el cuerpo de la publicación
+          </label>
+          <p className="-mt-3 text-xs text-ink-400">
+            Desmarcá esto si ya vas a agregar la misma imagen (u otra) como bloque en el cuerpo, para no repetirla.
+          </p>
           <label className="flex items-center gap-2 text-sm text-ink-600">
             <input
               type="checkbox"

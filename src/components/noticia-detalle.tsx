@@ -1,5 +1,5 @@
-import Image from "next/image";
 import { getVideoEmbedUrl } from "@/lib/video";
+import { NoticiaImagenLightbox } from "@/components/noticia-imagen-lightbox";
 
 type Bloque = {
   id: string;
@@ -12,6 +12,7 @@ type NoticiaDetalleProps = {
   titulo: string;
   pretexto: string | null;
   imagenDestacada: string | null;
+  mostrarImagenDestacadaEnCuerpo: boolean;
   video: string | null;
   publicadoEn: Date;
   bloques: Bloque[];
@@ -24,20 +25,21 @@ const dateFormatter = new Intl.DateTimeFormat("es-AR", {
   timeZone: "UTC",
 });
 
-export function NoticiaDetalle({ titulo, pretexto, imagenDestacada, video, publicadoEn, bloques }: NoticiaDetalleProps) {
+export function NoticiaDetalle({
+  titulo,
+  pretexto,
+  imagenDestacada,
+  mostrarImagenDestacadaEnCuerpo,
+  video,
+  publicadoEn,
+  bloques,
+}: NoticiaDetalleProps) {
   const embedUrl = video ? getVideoEmbedUrl(video) : null;
 
   return (
     <div style={{ paddingTop: "var(--site-header-h, 170px)" }}>
       <section className="relative overflow-hidden">
-        <div className="absolute inset-0">
-          {imagenDestacada ? (
-            <Image src={imagenDestacada} alt={titulo} fill unoptimized sizes="100vw" className="object-cover" />
-          ) : (
-            <div className="h-full w-full bg-ink-900" />
-          )}
-          <div className="absolute inset-0 bg-ink-900/70" />
-        </div>
+        <div className="absolute inset-0 bg-ink-900" />
         <div className="relative mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
           <p className="text-xs font-semibold uppercase tracking-wide text-white/70">{dateFormatter.format(publicadoEn)}</p>
           <h1 className="mt-2 text-3xl font-semibold text-white sm:text-4xl">{titulo}</h1>
@@ -54,16 +56,9 @@ export function NoticiaDetalle({ titulo, pretexto, imagenDestacada, video, publi
       </section>
 
       <section className="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
-        {imagenDestacada && (
-          <div className="relative mb-10 aspect-video overflow-hidden rounded-xl border border-surface-border">
-            <Image
-              src={imagenDestacada}
-              alt={titulo}
-              fill
-              unoptimized
-              sizes="(min-width: 1024px) 768px, 100vw"
-              className="object-cover"
-            />
+        {imagenDestacada && mostrarImagenDestacadaEnCuerpo && (
+          <div className="mb-10">
+            <NoticiaImagenLightbox src={imagenDestacada} alt={titulo} />
           </div>
         )}
 
@@ -93,11 +88,7 @@ export function NoticiaDetalle({ titulo, pretexto, imagenDestacada, video, publi
                     ))}
                 </div>
               ) : (
-                bloque.imagenUrl && (
-                  <div key={bloque.id} className="relative aspect-video overflow-hidden rounded-xl border border-surface-border">
-                    <Image src={bloque.imagenUrl} alt="" fill unoptimized sizes="(min-width: 1024px) 768px, 100vw" className="object-cover" />
-                  </div>
-                )
+                bloque.imagenUrl && <NoticiaImagenLightbox key={bloque.id} src={bloque.imagenUrl} alt="" />
               ),
             )}
           </div>
