@@ -188,7 +188,7 @@ export async function generateCertificadoPdf(data: CertificadoPdfData): Promise<
       .fontSize(11.5)
       .fillColor("#14201d")
       .text(
-        `A pedido del interesado y para ser presentado ante quien corresponda, se extiende el presente en la ciudad ` +
+        `A pedido del/de la interesado/a y para ser presentado/a ante quien corresponda, se extiende el presente en la ciudad ` +
           `de Santa Fe ${fechaEnPalabras(new Date())}.`,
         { align: "justify", width: pageWidth, lineGap: 3 },
       );
