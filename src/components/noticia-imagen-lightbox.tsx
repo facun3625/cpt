@@ -11,9 +11,27 @@ export function NoticiaImagenLightbox({ src, alt }: { src: string; alt: string }
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="relative block aspect-video w-full overflow-hidden rounded-xl border border-surface-border"
+        className="group relative block h-32 w-48 overflow-hidden rounded-lg border border-surface-border"
       >
         <Image src={src} alt={alt} fill unoptimized className="object-cover" />
+        <span className="absolute inset-0 flex items-center justify-center bg-ink-900/0 transition-colors group-hover:bg-ink-900/40">
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            className="text-white opacity-0 transition-opacity group-hover:opacity-100"
+            aria-hidden="true"
+          >
+            <path
+              d="M9 3H3v6M15 3h6v6M9 21H3v-6M15 21h6v-6"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </span>
       </button>
 
       {open && (
