@@ -12,6 +12,7 @@ export type CertificadoPdfData = {
   tituloProfesional: string | null;
   domicilio: string | null;
   ciudad: string | null;
+  lugarPresentacion: string;
   fechaMatriculacion: Date | null;
   incluirFechaMatriculacion: boolean;
   notasAdicionales: string | null;
@@ -147,7 +148,7 @@ export async function generateCertificadoPdf(data: CertificadoPdfData): Promise<
     const tituloTexto = data.tituloProfesional ? `${data.tituloProfesional} ` : "";
     const fechaMatriculacionTexto =
       data.incluirFechaMatriculacion && data.fechaMatriculacion
-        ? `, matriculado/a desde el ${dateFormatter.format(data.fechaMatriculacion)}`
+        ? `, matriculado/a el ${dateFormatter.format(data.fechaMatriculacion)}`
         : "";
     const domicilioTexto = data.domicilio
       ? `, fijando su domicilio legal en ${data.domicilio}${data.ciudad ? ` de la ciudad de ${data.ciudad}` : ""}`
@@ -188,7 +189,7 @@ export async function generateCertificadoPdf(data: CertificadoPdfData): Promise<
       .fontSize(11.5)
       .fillColor("#14201d")
       .text(
-        `A pedido del/de la interesado/a y para ser presentado/a ante quien corresponda, se extiende el presente en la ciudad ` +
+        `A pedido del/de la interesado/a y para ser presentado/a ante ${data.lugarPresentacion}, se extiende el presente en la ciudad ` +
           `de Santa Fe ${fechaEnPalabras(new Date())}.`,
         { align: "justify", width: pageWidth, lineGap: 3 },
       );

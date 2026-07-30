@@ -83,6 +83,7 @@ export async function aprobarSolicitud(id: string, formData: FormData) {
     tituloProfesional: solicitud.tituloProfesional,
     domicilio: solicitud.domicilio,
     ciudad: solicitud.ciudad,
+    lugarPresentacion: solicitud.lugarPresentacion,
     fechaMatriculacion: solicitud.fechaMatriculacion,
     incluirFechaMatriculacion,
     notasAdicionales: solicitud.notasAdicionales,
