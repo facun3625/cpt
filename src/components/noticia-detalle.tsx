@@ -32,7 +32,7 @@ export function NoticiaDetalle({ titulo, pretexto, imagenDestacada, video, publi
       <section className="relative overflow-hidden">
         <div className="absolute inset-0">
           {imagenDestacada ? (
-            <Image src={imagenDestacada} alt={titulo} fill sizes="100vw" className="object-cover" />
+            <Image src={imagenDestacada} alt={titulo} fill unoptimized sizes="100vw" className="object-cover" />
           ) : (
             <div className="h-full w-full bg-ink-900" />
           )}
@@ -60,6 +60,7 @@ export function NoticiaDetalle({ titulo, pretexto, imagenDestacada, video, publi
               src={imagenDestacada}
               alt={titulo}
               fill
+              unoptimized
               sizes="(min-width: 1024px) 768px, 100vw"
               className="object-cover"
             />
@@ -94,7 +95,7 @@ export function NoticiaDetalle({ titulo, pretexto, imagenDestacada, video, publi
               ) : (
                 bloque.imagenUrl && (
                   <div key={bloque.id} className="relative aspect-video overflow-hidden rounded-xl border border-surface-border">
-                    <Image src={bloque.imagenUrl} alt="" fill sizes="(min-width: 1024px) 768px, 100vw" className="object-cover" />
+                    <Image src={bloque.imagenUrl} alt="" fill unoptimized sizes="(min-width: 1024px) 768px, 100vw" className="object-cover" />
                   </div>
                 )
               ),
