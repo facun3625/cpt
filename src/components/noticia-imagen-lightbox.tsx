@@ -36,7 +36,7 @@ export function NoticiaImagenLightbox({ src, alt }: { src: string; alt: string }
 
       {open && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-ink-900/90 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-ink-900/90 p-4 backdrop-blur-sm"
           onClick={() => setOpen(false)}
         >
           <button
@@ -50,7 +50,13 @@ export function NoticiaImagenLightbox({ src, alt }: { src: string; alt: string }
             </svg>
           </button>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={src} alt={alt} className="max-h-full max-w-full rounded-lg object-contain" onClick={(e) => e.stopPropagation()} />
+          <img
+            src={src}
+            alt={alt}
+            className="rounded-lg object-contain"
+            style={{ maxHeight: "calc(100vh - 2rem)", maxWidth: "calc(100vw - 2rem)" }}
+            onClick={(e) => e.stopPropagation()}
+          />
         </div>
       )}
     </>
