@@ -6,7 +6,7 @@ export default async function EditarNoticiaPage({ params }: { params: Promise<{ 
   const { id } = await params;
   const noticia = await prisma.noticia.findUnique({
     where: { id },
-    include: { galeria: { orderBy: { orden: "asc" } } },
+    include: { bloques: { orderBy: { orden: "asc" } } },
   });
   if (!noticia) notFound();
 

@@ -99,21 +99,28 @@ model Noticia {
   slug            String          @unique
   titulo          String
   pretexto        String?
-  texto           String?
   imagenDestacada String?
   video           String?
   enSliderHome    Boolean         @default(false)
+  orden           Int             @default(0)
   publicadoEn     DateTime        @default(now())
   createdAt       DateTime        @default(now())
-  galeria         NoticiaImagen[]
+  bloques         NoticiaBloque[]
 }
 
-model NoticiaImagen {
-  id        String  @id @default(cuid())
+enum NoticiaBloqueTipo {
+  TEXTO
+  IMAGEN
+}
+
+model NoticiaBloque {
+  id        String            @id @default(cuid())
   noticiaId String
-  noticia   Noticia @relation(fields: [noticiaId], references: [id], onDelete: Cascade)
-  url       String
-  orden     Int     @default(0)
+  noticia   Noticia           @relation(fields: [noticiaId], references: [id], onDelete: Cascade)
+  tipo      NoticiaBloqueTipo
+  texto     String?
+  imagenUrl String?
+  orden     Int               @default(0)
 }
 
 model RepositorioArchivo {

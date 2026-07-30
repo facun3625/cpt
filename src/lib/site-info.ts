@@ -76,14 +76,14 @@ export async function getArancelGrupos() {
 export async function getNoticias(tipo: "NOTICIA" | "CAPACITACION") {
   return prisma.noticia.findMany({
     where: { tipo },
-    orderBy: { publicadoEn: "desc" },
+    orderBy: [{ orden: "asc" }, { publicadoEn: "desc" }],
   });
 }
 
 export async function getNoticiaBySlug(slug: string) {
   return prisma.noticia.findUnique({
     where: { slug },
-    include: { galeria: { orderBy: { orden: "asc" } } },
+    include: { bloques: { orderBy: { orden: "asc" } } },
   });
 }
 

@@ -1,14 +1,20 @@
 import Image from "next/image";
 import { getVideoEmbedUrl } from "@/lib/video";
 
+type Bloque = {
+  id: string;
+  tipo: "TEXTO" | "IMAGEN";
+  texto: string | null;
+  imagenUrl: string | null;
+};
+
 type NoticiaDetalleProps = {
   titulo: string;
   pretexto: string | null;
-  texto: string | null;
   imagenDestacada: string | null;
   video: string | null;
   publicadoEn: Date;
-  galeria: { id: string; url: string }[];
+  bloques: Bloque[];
 };
 
 const dateFormatter = new Intl.DateTimeFormat("es-AR", {
@@ -18,9 +24,8 @@ const dateFormatter = new Intl.DateTimeFormat("es-AR", {
   timeZone: "UTC",
 });
 
-export function NoticiaDetalle({ titulo, pretexto, texto, imagenDestacada, video, publicadoEn, galeria }: NoticiaDetalleProps) {
+export function NoticiaDetalle({ titulo, pretexto, imagenDestacada, video, publicadoEn, bloques }: NoticiaDetalleProps) {
   const embedUrl = video ? getVideoEmbedUrl(video) : null;
-  const parrafos = texto?.replace(/\r\n/g, "\n").split(/\n{2,}/).filter(Boolean) ?? [];
 
   return (
     <div style={{ paddingTop: "var(--site-header-h, 170px)" }}>
@@ -49,6 +54,18 @@ export function NoticiaDetalle({ titulo, pretexto, texto, imagenDestacada, video
       </section>
 
       <section className="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+        {imagenDestacada && (
+          <div className="relative mb-10 aspect-video overflow-hidden rounded-xl border border-surface-border">
+            <Image
+              src={imagenDestacada}
+              alt={titulo}
+              fill
+              sizes="(min-width: 1024px) 768px, 100vw"
+              className="object-cover"
+            />
+          </div>
+        )}
+
         {embedUrl && (
           <div className="mb-10 aspect-video overflow-hidden rounded-xl border border-surface-border">
             <iframe
@@ -61,27 +78,30 @@ export function NoticiaDetalle({ titulo, pretexto, texto, imagenDestacada, video
           </div>
         )}
 
-        {parrafos.length > 0 ? (
-          <div className="space-y-4 text-ink-700">
-            {parrafos.map((p, i) => (
-              <p key={i}>{p}</p>
-            ))}
+        {bloques.length > 0 ? (
+          <div className="space-y-6">
+            {bloques.map((bloque) =>
+              bloque.tipo === "TEXTO" ? (
+                <div key={bloque.id} className="space-y-4 text-ink-700">
+                  {(bloque.texto ?? "")
+                    .replace(/\r\n/g, "\n")
+                    .split(/\n{2,}/)
+                    .filter(Boolean)
+                    .map((p, i) => (
+                      <p key={i}>{p}</p>
+                    ))}
+                </div>
+              ) : (
+                bloque.imagenUrl && (
+                  <div key={bloque.id} className="relative aspect-video overflow-hidden rounded-xl border border-surface-border">
+                    <Image src={bloque.imagenUrl} alt="" fill sizes="(min-width: 1024px) 768px, 100vw" className="object-cover" />
+                  </div>
+                )
+              ),
+            )}
           </div>
         ) : (
           <p className="text-ink-500">Todavía no se cargó el contenido completo de esta publicación.</p>
-        )}
-
-        {galeria.length > 0 && (
-          <div className="mt-12">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-400">Galería</h2>
-            <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3">
-              {galeria.map((img) => (
-                <div key={img.id} className="relative aspect-square overflow-hidden rounded-xl border border-surface-border">
-                  <Image src={img.url} alt="" fill sizes="(min-width: 640px) 33vw, 50vw" className="object-cover" />
-                </div>
-              ))}
-            </div>
-          </div>
         )}
       </section>
     </div>

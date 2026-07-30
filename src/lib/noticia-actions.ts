@@ -19,15 +19,60 @@ async function uniqueSlug(base: string) {
   return `${slug}-${Date.now().toString(36)}`;
 }
 
+type BloqueInput =
+  | { tipo: "TEXTO"; texto: string }
+  | { tipo: "IMAGEN"; file: File | null; existingUrl: string | null };
+
+function parseBloques(formData: FormData): BloqueInput[] {
+  const bloques: BloqueInput[] = [];
+  let i = 0;
+  while (formData.has(`bloque_${i}_tipo`)) {
+    const tipo = formData.get(`bloque_${i}_tipo`);
+    if (tipo === "TEXTO") {
+      const texto = String(formData.get(`bloque_${i}_texto`) ?? "").trim();
+      if (texto) bloques.push({ tipo: "TEXTO", texto });
+    } else if (tipo === "IMAGEN") {
+      const file = formData.get(`bloque_${i}_imagen`);
+      const existingUrl = String(formData.get(`bloque_${i}_imagenUrl`) ?? "").trim() || null;
+      bloques.push({
+        tipo: "IMAGEN",
+        file: file instanceof File && file.size > 0 ? file : null,
+        existingUrl,
+      });
+    }
+    i++;
+  }
+  return bloques;
+}
+
+async function guardarBloques(noticiaId: string, bloques: BloqueInput[]) {
+  await prisma.noticiaBloque.deleteMany({ where: { noticiaId } });
+
+  let orden = 0;
+  for (const bloque of bloques) {
+    if (bloque.tipo === "TEXTO") {
+      await prisma.noticiaBloque.create({
+        data: { noticiaId, tipo: "TEXTO", texto: bloque.texto, orden: orden++ },
+      });
+    } else {
+      const imagenUrl = bloque.file ? await saveUploadedImage(bloque.file) : bloque.existingUrl;
+      if (!imagenUrl) continue;
+      await prisma.noticiaBloque.create({
+        data: { noticiaId, tipo: "IMAGEN", imagenUrl, orden: orden++ },
+      });
+    }
+  }
+}
+
 export async function createNoticia(tipo: NoticiaTipo, formData: FormData) {
   await verifyAdminSession();
   const titulo = String(formData.get("titulo") ?? "").trim();
   if (!titulo) return;
 
   const pretexto = String(formData.get("pretexto") ?? "").trim() || null;
-  const texto = String(formData.get("texto") ?? "").trim() || null;
   const video = String(formData.get("video") ?? "").trim() || null;
   const enSliderHome = formData.get("enSliderHome") === "on";
+  const bloques = parseBloques(formData);
 
   const imagenFile = formData.get("imagenDestacada");
   let imagenDestacada: string | null = null;
@@ -36,10 +81,14 @@ export async function createNoticia(tipo: NoticiaTipo, formData: FormData) {
   }
 
   const slug = await uniqueSlug(titulo);
+  const primerOrden = await prisma.noticia.aggregate({ where: { tipo }, _min: { orden: true } });
+  const orden = (primerOrden._min.orden ?? 0) - 1;
 
   const noticia = await prisma.noticia.create({
-    data: { tipo, slug, titulo, pretexto, texto, video, enSliderHome, imagenDestacada },
+    data: { tipo, slug, titulo, pretexto, video, enSliderHome, imagenDestacada, orden },
   });
+
+  await guardarBloques(noticia.id, bloques);
 
   revalidatePath("/", "layout");
   redirect(`${sectionPath(tipo)}/${noticia.id}?ok=1`);
@@ -51,17 +100,18 @@ export async function updateNoticia(id: string, tipo: NoticiaTipo, formData: For
   if (!titulo) return;
 
   const pretexto = String(formData.get("pretexto") ?? "").trim() || null;
-  const texto = String(formData.get("texto") ?? "").trim() || null;
   const video = String(formData.get("video") ?? "").trim() || null;
   const enSliderHome = formData.get("enSliderHome") === "on";
+  const bloques = parseBloques(formData);
 
   const imagenFile = formData.get("imagenDestacada");
-  const data: Record<string, unknown> = { titulo, pretexto, texto, video, enSliderHome };
+  const data: Record<string, unknown> = { titulo, pretexto, video, enSliderHome };
   if (imagenFile instanceof File && imagenFile.size > 0) {
     data.imagenDestacada = await saveUploadedImage(imagenFile);
   }
 
   await prisma.noticia.update({ where: { id }, data });
+  await guardarBloques(id, bloques);
 
   revalidatePath("/", "layout");
   redirect(`${sectionPath(tipo)}/${id}?ok=1`);
@@ -81,22 +131,27 @@ export async function deleteNoticia(id: string, tipo: NoticiaTipo) {
   redirect(`${sectionPath(tipo)}?ok=1`);
 }
 
-export async function addGaleriaImagen(noticiaId: string, tipo: NoticiaTipo, formData: FormData) {
+export async function moverNoticia(id: string, tipo: NoticiaTipo, direccion: "arriba" | "abajo") {
   await verifyAdminSession();
-  const file = formData.get("imagen");
-  if (!(file instanceof File) || file.size === 0) return;
 
-  const url = await saveUploadedImage(file);
-  const count = await prisma.noticiaImagen.count({ where: { noticiaId } });
-  await prisma.noticiaImagen.create({ data: { noticiaId, url, orden: count } });
+  const noticias = await prisma.noticia.findMany({
+    where: { tipo },
+    orderBy: [{ orden: "asc" }, { publicadoEn: "desc" }],
+    select: { id: true, orden: true },
+  });
+
+  const index = noticias.findIndex((n) => n.id === id);
+  const swapIndex = direccion === "arriba" ? index - 1 : index + 1;
+  if (index === -1 || swapIndex < 0 || swapIndex >= noticias.length) return;
+
+  const actual = noticias[index];
+  const vecino = noticias[swapIndex];
+
+  await prisma.$transaction([
+    prisma.noticia.update({ where: { id: actual.id }, data: { orden: vecino.orden } }),
+    prisma.noticia.update({ where: { id: vecino.id }, data: { orden: actual.orden } }),
+  ]);
 
   revalidatePath("/", "layout");
-  redirect(`${sectionPath(tipo)}/${noticiaId}?ok=1`);
-}
-
-export async function deleteGaleriaImagen(imageId: string, noticiaId: string, tipo: NoticiaTipo) {
-  await verifyAdminSession();
-  await prisma.noticiaImagen.delete({ where: { id: imageId } });
-  revalidatePath("/", "layout");
-  redirect(`${sectionPath(tipo)}/${noticiaId}?ok=1`);
+  redirect(`${sectionPath(tipo)}?ok=1`);
 }

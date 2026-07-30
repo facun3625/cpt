@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getNoticias } from "@/lib/site-info";
-import { deleteNoticia, toggleEnSlider } from "@/lib/noticia-actions";
+import { deleteNoticia, toggleEnSlider, moverNoticia } from "@/lib/noticia-actions";
 import type { NoticiaTipo } from "@/generated/prisma/client";
 
 const dateFormatter = new Intl.DateTimeFormat("es-AR", {
@@ -39,12 +39,34 @@ export async function NoticiasList({
       </div>
 
       <div className="mt-6 space-y-3">
-        {noticias.map((n) => (
+        {noticias.map((n, i) => (
           <div
             key={n.id}
             className="flex items-center justify-between gap-4 rounded-xl border border-surface-border bg-white p-4"
           >
-            <div className="flex min-w-0 items-center gap-4">
+            <div className="flex shrink-0 flex-col gap-1">
+              <form action={moverNoticia.bind(null, n.id, tipo, "arriba")}>
+                <button
+                  type="submit"
+                  disabled={i === 0}
+                  className="rounded-full border border-surface-border px-2 py-1 text-xs font-semibold text-ink-500 transition-colors hover:border-primary-400 hover:text-primary-700 disabled:cursor-not-allowed disabled:opacity-30"
+                  title="Mover arriba"
+                >
+                  ↑
+                </button>
+              </form>
+              <form action={moverNoticia.bind(null, n.id, tipo, "abajo")}>
+                <button
+                  type="submit"
+                  disabled={i === noticias.length - 1}
+                  className="rounded-full border border-surface-border px-2 py-1 text-xs font-semibold text-ink-500 transition-colors hover:border-primary-400 hover:text-primary-700 disabled:cursor-not-allowed disabled:opacity-30"
+                  title="Mover abajo"
+                >
+                  ↓
+                </button>
+              </form>
+            </div>
+            <div className="flex min-w-0 flex-1 items-center gap-4">
               {n.imagenDestacada && (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={n.imagenDestacada} alt="" className="h-14 w-20 shrink-0 rounded-lg object-cover" />

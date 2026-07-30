@@ -1,6 +1,7 @@
 import "server-only";
 import PDFDocument from "pdfkit";
 import QRCode from "qrcode";
+import sharp, { type Metadata } from "sharp";
 import path from "path";
 import { readFile } from "fs/promises";
 
@@ -82,6 +83,7 @@ export async function generateCredencialPdf(data: CredencialPdfData): Promise<Bu
     readPublicFile(data.fotoUrl),
     Promise.all(data.firmas.map((f) => readPublicFile(f.firmaUrl))),
   ]);
+  const fotoMeta = fotoBuffer ? await sharp(fotoBuffer).metadata() : null;
 
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({ size: [CARD_WIDTH, FRONT_HEIGHT], margin: 0 });
@@ -92,7 +94,7 @@ export async function generateCredencialPdf(data: CredencialPdfData): Promise<Bu
 
     const headerHeight = measureHeaderHeight(doc);
 
-    drawFrente(doc, data, logoBuffer, fotoBuffer, headerHeight);
+    drawFrente(doc, data, logoBuffer, fotoBuffer, fotoMeta, headerHeight);
 
     const dorsoHeight = headerHeight + 14 + QR_BLOCK_HEIGHT + FIRMA_ROW_HEIGHT + FOOTER_HEIGHT;
     doc.addPage({ size: [CARD_WIDTH, dorsoHeight], margin: 0 });
@@ -107,19 +109,32 @@ function drawFrente(
   data: CredencialPdfData,
   logoBuffer: Buffer | null,
   fotoBuffer: Buffer | null,
+  fotoMeta: Metadata | null,
   headerHeight: number,
 ) {
   drawHeader(doc, logoBuffer, "Credencial Digital de Matriculado", headerHeight);
 
   const contentY = headerHeight + 14;
 
-  // Foto
+  // Foto: se recorta en modo "cover" para llenar el recuadro sin dejar franjas vacías
   const photoSize = 90;
   const photoX = 24;
+  const photoRadius = 6;
   if (fotoBuffer) {
-    doc.image(fotoBuffer, photoX, contentY, { width: photoSize, height: photoSize, fit: [photoSize, photoSize] });
+    const imgW = fotoMeta?.width ?? photoSize;
+    const imgH = fotoMeta?.height ?? photoSize;
+    const scale = Math.max(photoSize / imgW, photoSize / imgH);
+    const drawW = imgW * scale;
+    const drawH = imgH * scale;
+    const dx = photoX + (photoSize - drawW) / 2;
+    const dy = contentY + (photoSize - drawH) / 2;
+
+    doc.save();
+    doc.roundedRect(photoX, contentY, photoSize, photoSize, photoRadius).clip();
+    doc.image(fotoBuffer, dx, dy, { width: drawW, height: drawH });
+    doc.restore();
   }
-  doc.lineWidth(2).strokeColor("#04213f").rect(photoX, contentY, photoSize, photoSize).stroke();
+  doc.lineWidth(1).strokeColor("#c7d0ce").roundedRect(photoX, contentY, photoSize, photoSize, photoRadius).stroke();
 
   // Datos
   const infoX = photoX + photoSize + 20;

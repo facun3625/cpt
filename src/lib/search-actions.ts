@@ -29,7 +29,7 @@ export async function buscarContenido(query: string): Promise<SearchResult[]> {
       OR: [
         { titulo: { contains: q, mode: "insensitive" } },
         { pretexto: { contains: q, mode: "insensitive" } },
-        { texto: { contains: q, mode: "insensitive" } },
+        { bloques: { some: { texto: { contains: q, mode: "insensitive" } } } },
       ],
     },
     orderBy: { publicadoEn: "desc" },
