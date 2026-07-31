@@ -148,7 +148,7 @@ export async function generateCertificadoPdf(data: CertificadoPdfData): Promise<
     const tituloTexto = data.tituloProfesional ? `${data.tituloProfesional} ` : "";
     const fechaMatriculacionTexto =
       data.incluirFechaMatriculacion && data.fechaMatriculacion
-        ? `, matriculado/a el ${dateFormatter.format(data.fechaMatriculacion)}`
+        ? `, en fecha ${dateFormatter.format(data.fechaMatriculacion)}`
         : "";
     const domicilioTexto = data.domicilio
       ? `, fijando su domicilio legal en ${data.domicilio}${data.ciudad ? ` de la ciudad de ${data.ciudad}` : ""}`
