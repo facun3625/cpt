@@ -112,16 +112,19 @@ model Noticia {
 enum NoticiaBloqueTipo {
   TEXTO
   IMAGEN
+  ARCHIVO
 }
 
 model NoticiaBloque {
-  id        String            @id @default(cuid())
-  noticiaId String
-  noticia   Noticia           @relation(fields: [noticiaId], references: [id], onDelete: Cascade)
-  tipo      NoticiaBloqueTipo
-  texto     String?
-  imagenUrl String?
-  orden     Int               @default(0)
+  id            String            @id @default(cuid())
+  noticiaId     String
+  noticia       Noticia           @relation(fields: [noticiaId], references: [id], onDelete: Cascade)
+  tipo          NoticiaBloqueTipo
+  texto         String?
+  imagenUrl     String?
+  archivoUrl    String?
+  archivoNombre String?
+  orden         Int               @default(0)
 }
 
 model RepositorioArchivo {

@@ -11,7 +11,13 @@ type NoticiaWithBloques = {
   mostrarImagenDestacadaEnCuerpo: boolean;
   video: string | null;
   enSliderHome: boolean;
-  bloques: { tipo: "TEXTO" | "IMAGEN"; texto: string | null; imagenUrl: string | null }[];
+  bloques: {
+    tipo: "TEXTO" | "IMAGEN" | "ARCHIVO";
+    texto: string | null;
+    imagenUrl: string | null;
+    archivoUrl: string | null;
+    archivoNombre: string | null;
+  }[];
 };
 
 const inputClass =

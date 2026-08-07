@@ -4,8 +4,9 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { verifyAdminSession } from "@/lib/admin-dal";
-import { saveUploadedImage } from "@/lib/upload";
+import { saveUploadedImage, saveUploadedDocument } from "@/lib/upload";
 import { slugify } from "@/lib/slugify";
+import { sanitizeNoticiaHtml, stripHtml } from "@/lib/sanitize-html";
 import type { NoticiaTipo } from "@/generated/prisma/client";
 
 function sectionPath(tipo: NoticiaTipo) {
@@ -21,7 +22,8 @@ async function uniqueSlug(base: string) {
 
 type BloqueInput =
   | { tipo: "TEXTO"; texto: string }
-  | { tipo: "IMAGEN"; file: File | null; existingUrl: string | null };
+  | { tipo: "IMAGEN"; file: File | null; existingUrl: string | null }
+  | { tipo: "ARCHIVO"; file: File | null; existingUrl: string | null; nombre: string };
 
 function parseBloques(formData: FormData): BloqueInput[] {
   const bloques: BloqueInput[] = [];
@@ -29,8 +31,8 @@ function parseBloques(formData: FormData): BloqueInput[] {
   while (formData.has(`bloque_${i}_tipo`)) {
     const tipo = formData.get(`bloque_${i}_tipo`);
     if (tipo === "TEXTO") {
-      const texto = String(formData.get(`bloque_${i}_texto`) ?? "").trim();
-      if (texto) bloques.push({ tipo: "TEXTO", texto });
+      const texto = sanitizeNoticiaHtml(String(formData.get(`bloque_${i}_texto`) ?? "").trim());
+      if (stripHtml(texto)) bloques.push({ tipo: "TEXTO", texto });
     } else if (tipo === "IMAGEN") {
       const file = formData.get(`bloque_${i}_imagen`);
       const existingUrl = String(formData.get(`bloque_${i}_imagenUrl`) ?? "").trim() || null;
@@ -38,6 +40,16 @@ function parseBloques(formData: FormData): BloqueInput[] {
         tipo: "IMAGEN",
         file: file instanceof File && file.size > 0 ? file : null,
         existingUrl,
+      });
+    } else if (tipo === "ARCHIVO") {
+      const file = formData.get(`bloque_${i}_archivo`);
+      const existingUrl = String(formData.get(`bloque_${i}_archivoUrl`) ?? "").trim() || null;
+      const nombre = String(formData.get(`bloque_${i}_archivoNombre`) ?? "").trim();
+      bloques.push({
+        tipo: "ARCHIVO",
+        file: file instanceof File && file.size > 0 ? file : null,
+        existingUrl,
+        nombre,
       });
     }
     i++;
@@ -54,11 +66,27 @@ async function guardarBloques(noticiaId: string, bloques: BloqueInput[]) {
       await prisma.noticiaBloque.create({
         data: { noticiaId, tipo: "TEXTO", texto: bloque.texto, orden: orden++ },
       });
-    } else {
+    } else if (bloque.tipo === "IMAGEN") {
       const imagenUrl = bloque.file ? await saveUploadedImage(bloque.file) : bloque.existingUrl;
       if (!imagenUrl) continue;
       await prisma.noticiaBloque.create({
         data: { noticiaId, tipo: "IMAGEN", imagenUrl, orden: orden++ },
+      });
+    } else {
+      let archivoUrl = bloque.existingUrl;
+      if (bloque.file) {
+        const saved = await saveUploadedDocument(bloque.file);
+        if (saved) archivoUrl = saved.url;
+      }
+      if (!archivoUrl) continue;
+      await prisma.noticiaBloque.create({
+        data: {
+          noticiaId,
+          tipo: "ARCHIVO",
+          archivoUrl,
+          archivoNombre: bloque.nombre || "Descargar documento",
+          orden: orden++,
+        },
       });
     }
   }

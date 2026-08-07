@@ -1,11 +1,14 @@
 import { getVideoEmbedUrl } from "@/lib/video";
 import { NoticiaImagenLightbox } from "@/components/noticia-imagen-lightbox";
+import { textoBloqueAHtml } from "@/lib/sanitize-html";
 
 type Bloque = {
   id: string;
-  tipo: "TEXTO" | "IMAGEN";
+  tipo: "TEXTO" | "IMAGEN" | "ARCHIVO";
   texto: string | null;
   imagenUrl: string | null;
+  archivoUrl: string | null;
+  archivoNombre: string | null;
 };
 
 type NoticiaDetalleProps = {
@@ -76,21 +79,41 @@ export function NoticiaDetalle({
 
         {bloques.length > 0 ? (
           <div className="space-y-6">
-            {bloques.map((bloque) =>
-              bloque.tipo === "TEXTO" ? (
-                <div key={bloque.id} className="space-y-4 text-ink-700">
-                  {(bloque.texto ?? "")
-                    .replace(/\r\n/g, "\n")
-                    .split(/\n{2,}/)
-                    .filter(Boolean)
-                    .map((p, i) => (
-                      <p key={i}>{p}</p>
-                    ))}
-                </div>
-              ) : (
-                bloque.imagenUrl && <NoticiaImagenLightbox key={bloque.id} src={bloque.imagenUrl} alt="" />
-              ),
-            )}
+            {bloques.map((bloque) => {
+              if (bloque.tipo === "TEXTO") {
+                return (
+                  <div
+                    key={bloque.id}
+                    className="noticia-cuerpo text-ink-700"
+                    dangerouslySetInnerHTML={{ __html: textoBloqueAHtml(bloque.texto ?? "") }}
+                  />
+                );
+              }
+              if (bloque.tipo === "IMAGEN") {
+                return bloque.imagenUrl && <NoticiaImagenLightbox key={bloque.id} src={bloque.imagenUrl} alt="" />;
+              }
+              return (
+                bloque.archivoUrl && (
+                  <a
+                    key={bloque.id}
+                    href={bloque.archivoUrl}
+                    download
+                    className="inline-flex items-center gap-2 rounded-lg border border-surface-border bg-surface px-4 py-3 text-sm font-semibold text-primary-700 transition-colors hover:border-primary-400 hover:bg-primary-50"
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <path
+                        d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                    {bloque.archivoNombre || "Descargar documento"}
+                  </a>
+                )
+              );
+            })}
           </div>
         ) : (
           <p className="text-ink-500">Todavía no se cargó el contenido completo de esta publicación.</p>

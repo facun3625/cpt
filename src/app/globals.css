@@ -66,3 +66,58 @@ body {
 .animate-page-in {
   animation: page-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
+
+/* Cuerpo de noticias (HTML del editor) y editor del panel */
+.noticia-cuerpo p {
+  margin-bottom: 1rem;
+}
+.noticia-cuerpo p:last-child {
+  margin-bottom: 0;
+}
+.noticia-cuerpo h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 1.25rem 0 0.75rem;
+  color: var(--color-ink-900);
+}
+.noticia-cuerpo h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 1rem 0 0.5rem;
+  color: var(--color-ink-900);
+}
+.noticia-cuerpo ul,
+.noticia-cuerpo ol {
+  margin: 0 0 1rem 1.25rem;
+  list-style-position: outside;
+}
+.noticia-cuerpo ul {
+  list-style-type: disc;
+}
+.noticia-cuerpo ol {
+  list-style-type: decimal;
+}
+.noticia-cuerpo li {
+  margin-bottom: 0.25rem;
+}
+.noticia-cuerpo a {
+  color: var(--color-primary-700);
+  text-decoration: underline;
+}
+.noticia-cuerpo blockquote {
+  border-left: 3px solid var(--color-surface-border);
+  padding-left: 1rem;
+  color: var(--color-ink-600);
+  margin: 0 0 1rem;
+}
+.noticia-cuerpo strong,
+.noticia-cuerpo b {
+  font-weight: 700;
+}
+
+/* Placeholder del editor contentEditable cuando está vacío */
+.noticia-cuerpo[contenteditable]:empty::before {
+  content: attr(data-placeholder);
+  color: var(--color-ink-400);
+  pointer-events: none;
+}
