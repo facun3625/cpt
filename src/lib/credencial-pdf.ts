@@ -37,9 +37,17 @@ async function readPublicFile(publicUrl: string): Promise<Buffer | null> {
   }
 }
 
-// Carnet apaisado, proporción tarjeta de crédito (85.6mm x 54mm) escalada para legibilidad.
+// Lienzo interno de dibujo (apaisado, proporción tarjeta ID-1 85.6mm x 54mm).
+// El contenido se dibuja a este tamaño y luego se escala al tamaño real de
+// impresión sobre la hoja A4.
 const CARD_WIDTH = 400;
-const FRONT_HEIGHT = 252;
+const CARD_HEIGHT = 252;
+
+// Tamaño real de una tarjeta ID-1 (85.6 x 54 mm) en puntos PDF, para que al
+// imprimir la hoja A4 al 100% las caras salgan a tamaño carnet listo para recortar.
+const CARD_PRINT_WIDTH = 242.6;
+const CARD_PRINT_HEIGHT = CARD_PRINT_WIDTH * (CARD_HEIGHT / CARD_WIDTH);
+const A4_WIDTH = 595.28;
 
 const INSTITUTION_NAME =
   "COLEGIO PROFESIONAL DE MAESTROS MAYORES DE OBRAS Y TÉCNICOS DE LA ARQUITECTURA, INDUSTRIA E INGENIERÍA DE LA PROVINCIA DE SANTA FE";
@@ -47,8 +55,6 @@ const HEADER_NAME_FONT_SIZE = 8;
 const HEADER_NAME_X = 72;
 
 const QR_BLOCK_HEIGHT = 104;
-const FIRMA_ROW_HEIGHT = 50;
-const FOOTER_HEIGHT = 40;
 
 function measureHeaderHeight(doc: PDFKit.PDFDocument): number {
   const nameWidth = CARD_WIDTH - HEADER_NAME_X - 14;
@@ -86,7 +92,7 @@ export async function generateCredencialPdf(data: CredencialPdfData): Promise<Bu
   const fotoMeta = fotoBuffer ? await sharp(fotoBuffer).metadata() : null;
 
   return new Promise((resolve, reject) => {
-    const doc = new PDFDocument({ size: [CARD_WIDTH, FRONT_HEIGHT], margin: 0 });
+    const doc = new PDFDocument({ size: "A4", margin: 0 });
     const chunks: Buffer[] = [];
     doc.on("data", (c) => chunks.push(c));
     doc.on("end", () => resolve(Buffer.concat(chunks)));
@@ -94,14 +100,73 @@ export async function generateCredencialPdf(data: CredencialPdfData): Promise<Bu
 
     const headerHeight = measureHeaderHeight(doc);
 
-    drawFrente(doc, data, logoBuffer, fotoBuffer, fotoMeta, headerHeight);
+    // Escala del lienzo interno (CARD_WIDTH x CARD_HEIGHT) al tamaño real de carnet.
+    const scale = CARD_PRINT_WIDTH / CARD_WIDTH;
+    const cardW = CARD_PRINT_WIDTH;
+    const cardH = CARD_PRINT_HEIGHT;
+    const x = (A4_WIDTH - cardW) / 2;
+    const frontY = 150;
+    const gap = 64;
+    const backY = frontY + cardH + gap;
 
-    const dorsoHeight = headerHeight + 14 + QR_BLOCK_HEIGHT + FIRMA_ROW_HEIGHT + FOOTER_HEIGHT;
-    doc.addPage({ size: [CARD_WIDTH, dorsoHeight], margin: 0 });
-    drawDorso(doc, data, logoBuffer, qrBuffer, firmaBuffers, headerHeight, dorsoHeight);
+    // Título e instrucciones
+    doc
+      .fontSize(15)
+      .font("Helvetica-Bold")
+      .fillColor("#04213f")
+      .text("Credencial de Matriculado", 0, 70, { width: A4_WIDTH, align: "center" });
+    doc
+      .fontSize(9.5)
+      .font("Helvetica")
+      .fillColor("#4b5a56")
+      .text(
+        "Imprimí esta hoja al 100% (sin ajustar a página). Recortá el frente y el dorso por las marcas y pegalos espalda con espalda para armar tu carnet.",
+        A4_WIDTH / 2 - 220,
+        94,
+        { width: 440, align: "center" },
+      );
+
+    // Frente
+    doc.save();
+    doc.translate(x, frontY).scale(scale);
+    drawFrente(doc, data, logoBuffer, fotoBuffer, fotoMeta, headerHeight);
+    doc.restore();
+    drawCropMarks(doc, x, frontY, cardW, cardH);
+    doc.fontSize(8).font("Helvetica-Bold").fillColor("#7c8b87").text("FRENTE", x, frontY - 14, { width: cardW });
+
+    // Dorso
+    doc.save();
+    doc.translate(x, backY).scale(scale);
+    drawDorso(doc, data, logoBuffer, qrBuffer, firmaBuffers, headerHeight, CARD_HEIGHT);
+    doc.restore();
+    drawCropMarks(doc, x, backY, cardW, cardH);
+    doc.fontSize(8).font("Helvetica-Bold").fillColor("#7c8b87").text("DORSO", x, backY - 14, { width: cardW });
 
     doc.end();
   });
+}
+
+// Marcas de corte en forma de "L" en las cuatro esquinas, por fuera de la tarjeta.
+function drawCropMarks(doc: PDFKit.PDFDocument, x: number, y: number, w: number, h: number) {
+  const len = 10;
+  const off = 4;
+  doc.lineWidth(0.5).strokeColor("#9aa8a4");
+  const corners = [
+    { cx: x, cy: y, sx: -1, sy: -1 },
+    { cx: x + w, cy: y, sx: 1, sy: -1 },
+    { cx: x, cy: y + h, sx: -1, sy: 1 },
+    { cx: x + w, cy: y + h, sx: 1, sy: 1 },
+  ];
+  for (const c of corners) {
+    doc
+      .moveTo(c.cx + c.sx * off, c.cy)
+      .lineTo(c.cx + c.sx * (off + len), c.cy)
+      .stroke();
+    doc
+      .moveTo(c.cx, c.cy + c.sy * off)
+      .lineTo(c.cx, c.cy + c.sy * (off + len))
+      .stroke();
+  }
 }
 
 function drawFrente(
@@ -191,8 +256,8 @@ function drawFrente(
       .text(dateFormatter.format(data.fechaMatriculacion), rightX, y + 12, { width: colWidth });
   }
 
-  const footerDividerY = FRONT_HEIGHT - 28;
-  const footerTextY = FRONT_HEIGHT - 20;
+  const footerDividerY = CARD_HEIGHT - 28;
+  const footerTextY = CARD_HEIGHT - 20;
   doc
     .moveTo(24, footerDividerY)
     .lineTo(CARD_WIDTH - 24, footerDividerY)
@@ -250,7 +315,7 @@ function drawDorso(
       width: infoWidth,
     });
 
-  // Firmas: institucional(es) marcadas para credencial + espacio en blanco para el matriculado
+  // Firmas institucionales marcadas para credencial (sin firma del matriculado)
   const firmasY = contentY + QR_BLOCK_HEIGHT;
   const columnas: { nombre: string; titulo: string; buffer: Buffer | null }[] = data.firmas.map((f, i) => ({
     nombre: f.nombre,
@@ -258,43 +323,30 @@ function drawDorso(
     buffer: firmaBuffers[i],
   }));
 
-  const totalColumnas = columnas.length + 1;
-  const colWidth = (CARD_WIDTH - 48) / totalColumnas;
-
-  columnas.forEach((firma, i) => {
-    const x = 24 + i * colWidth;
-    const imgW = Math.min(56, colWidth - 12);
-    if (firma.buffer) {
-      doc.image(firma.buffer, x + colWidth / 2 - imgW / 2, firmasY, { width: imgW, height: imgW * 0.5, fit: [imgW, imgW * 0.5] });
-    }
-    doc
-      .moveTo(x + colWidth / 2 - 30, firmasY + 26)
-      .lineTo(x + colWidth / 2 + 30, firmasY + 26)
-      .strokeColor("#c7d0ce")
-      .lineWidth(1)
-      .stroke();
-    doc.fontSize(7.5).font("Helvetica-Bold").fillColor("#14201d").text(firma.nombre, x, firmasY + 29, {
-      width: colWidth,
-      align: "center",
+  if (columnas.length > 0) {
+    const colWidth = (CARD_WIDTH - 48) / columnas.length;
+    columnas.forEach((firma, i) => {
+      const x = 24 + i * colWidth;
+      const imgW = Math.min(56, colWidth - 12);
+      if (firma.buffer) {
+        doc.image(firma.buffer, x + colWidth / 2 - imgW / 2, firmasY, { width: imgW, height: imgW * 0.5, fit: [imgW, imgW * 0.5] });
+      }
+      doc
+        .moveTo(x + colWidth / 2 - 30, firmasY + 26)
+        .lineTo(x + colWidth / 2 + 30, firmasY + 26)
+        .strokeColor("#c7d0ce")
+        .lineWidth(1)
+        .stroke();
+      doc.fontSize(7.5).font("Helvetica-Bold").fillColor("#14201d").text(firma.nombre, x, firmasY + 29, {
+        width: colWidth,
+        align: "center",
+      });
+      doc.fontSize(7).font("Helvetica").fillColor("#7c8b87").text(firma.titulo, x, firmasY + 39, {
+        width: colWidth,
+        align: "center",
+      });
     });
-    doc.fontSize(7).font("Helvetica").fillColor("#7c8b87").text(firma.titulo, x, firmasY + 39, {
-      width: colWidth,
-      align: "center",
-    });
-  });
-
-  // Última columna: siempre en blanco, para la firma manuscrita del matriculado
-  const blankX = 24 + columnas.length * colWidth;
-  doc
-    .moveTo(blankX + colWidth / 2 - 30, firmasY + 26)
-    .lineTo(blankX + colWidth / 2 + 30, firmasY + 26)
-    .strokeColor("#c7d0ce")
-    .lineWidth(1)
-    .stroke();
-  doc.fontSize(7.5).font("Helvetica").fillColor("#7c8b87").text("Firma del matriculado", blankX, firmasY + 29, {
-    width: colWidth,
-    align: "center",
-  });
+  }
 
   const footerDividerY = pageHeight - 28;
   const footerTextY = pageHeight - 20;
