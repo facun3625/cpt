@@ -61,26 +61,26 @@ export function ChatWidget() {
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-label={open ? "Cerrar asistente virtual" : "Abrir asistente virtual"}
-        className={`fixed bottom-20 right-6 z-50 flex items-center gap-2 rounded-full bg-accent-500 text-white shadow-lg transition-transform hover:scale-105 sm:bottom-6 ${
-          open ? "h-14 w-14 justify-center" : "h-14 pl-4 pr-5"
+        className={`fixed bottom-20 right-2 z-50 flex h-11 w-11 items-center justify-center gap-2 rounded-full bg-accent-500 text-white shadow-lg transition-transform hover:scale-105 sm:bottom-6 sm:right-6 sm:h-14 sm:w-auto ${
+          open ? "sm:w-14 sm:justify-center" : "sm:pl-4 sm:pr-5 sm:justify-start"
         }`}
       >
         {open ? (
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <path d="M6 6 18 18M6 18 18 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
           </svg>
         ) : (
           <>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true" className="shrink-0">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true" className="shrink-0 sm:h-6 sm:w-6">
               <path d="M4 4h16v12H8l-4 4V4Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
             </svg>
-            <span className="whitespace-nowrap text-sm font-semibold">¿Necesitás ayuda?</span>
+            <span className="hidden whitespace-nowrap text-sm font-semibold sm:inline">¿Necesitás ayuda?</span>
           </>
         )}
       </button>
 
       {open && (
-        <div className="fixed bottom-36 right-6 z-50 flex h-[28rem] w-[22rem] max-w-[calc(100vw-3rem)] flex-col overflow-hidden rounded-2xl border border-surface-border bg-white shadow-2xl sm:bottom-24">
+        <div className="fixed bottom-32 right-2 z-50 flex h-[28rem] w-[22rem] max-w-[calc(100vw-1rem)] flex-col overflow-hidden rounded-2xl border border-surface-border bg-white shadow-2xl sm:bottom-24 sm:right-6 sm:max-w-[calc(100vw-3rem)]">
           <div className="bg-primary-900 px-4 py-3">
             <p className="text-sm font-semibold text-white">Asistente virtual CPT</p>
             <p className="text-xs text-white/60">Respuestas basadas en la información del sitio</p>
