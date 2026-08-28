@@ -209,6 +209,11 @@ enum CertificadoModelo {
   CUOTAS
 }
 
+enum TipoLocalidad {
+  CIUDAD
+  LOCALIDAD
+}
+
 model CertificadoSolicitud {
   id                   String             @id @default(cuid())
   numeroDocumento      String
@@ -219,6 +224,7 @@ model CertificadoSolicitud {
   tituloProfesional    String?
   domicilio            String?
   ciudad               String?
+  tipoLocalidad        TipoLocalidad      @default(CIUDAD)
   email                String
   lugarPresentacion    String
   observaciones        String?

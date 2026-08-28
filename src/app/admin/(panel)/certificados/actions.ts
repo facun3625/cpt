@@ -26,6 +26,7 @@ export async function updateSolicitud(id: string, formData: FormData) {
   const tituloProfesional = String(formData.get("tituloProfesional") ?? "").trim() || null;
   const domicilio = String(formData.get("domicilio") ?? "").trim() || null;
   const ciudad = String(formData.get("ciudad") ?? "").trim() || null;
+  const tipoLocalidad = formData.get("tipoLocalidad") === "LOCALIDAD" ? "LOCALIDAD" : "CIUDAD";
   const notasAdicionales = String(formData.get("notasAdicionales") ?? "").trim() || null;
 
   if (!nombre || !apellido || !numeroMatricula || !numeroDocumento || !lugarPresentacion) return;
@@ -43,6 +44,7 @@ export async function updateSolicitud(id: string, formData: FormData) {
       tituloProfesional,
       domicilio,
       ciudad,
+      tipoLocalidad,
       notasAdicionales,
     },
   });
@@ -83,6 +85,7 @@ export async function aprobarSolicitud(id: string, formData: FormData) {
     tituloProfesional: solicitud.tituloProfesional,
     domicilio: solicitud.domicilio,
     ciudad: solicitud.ciudad,
+    tipoLocalidad: solicitud.tipoLocalidad,
     lugarPresentacion: solicitud.lugarPresentacion,
     fechaMatriculacion: solicitud.fechaMatriculacion,
     incluirFechaMatriculacion,

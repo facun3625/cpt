@@ -12,6 +12,7 @@ export type CertificadoPdfData = {
   tituloProfesional: string | null;
   domicilio: string | null;
   ciudad: string | null;
+  tipoLocalidad: "CIUDAD" | "LOCALIDAD";
   lugarPresentacion: string;
   fechaMatriculacion: Date | null;
   incluirFechaMatriculacion: boolean;
@@ -150,8 +151,9 @@ export async function generateCertificadoPdf(data: CertificadoPdfData): Promise<
       data.incluirFechaMatriculacion && data.fechaMatriculacion
         ? `, en fecha ${dateFormatter.format(data.fechaMatriculacion)}`
         : "";
+    const localidadPalabra = data.tipoLocalidad === "LOCALIDAD" ? "localidad" : "ciudad";
     const domicilioTexto = data.domicilio
-      ? `, fijando su domicilio legal en ${data.domicilio}${data.ciudad ? ` de la ciudad de ${data.ciudad}` : ""}`
+      ? `, fijando su domicilio legal en ${data.domicilio}${data.ciudad ? ` de la ${localidadPalabra} de ${data.ciudad}` : ""}`
       : "";
     const anioActual = new Date().getFullYear();
 

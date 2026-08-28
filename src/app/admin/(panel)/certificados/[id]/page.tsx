@@ -105,15 +105,30 @@ export default async function CertificadoDetallePage({ params }: { params: Promi
             />
           </div>
         </div>
-        <div>
-          <label className="text-xs font-medium text-ink-500">Ciudad</label>
-          <input
-            name="ciudad"
-            defaultValue={solicitud.ciudad ?? ""}
-            placeholder="Santa Fe"
-            disabled={!esPendiente}
-            className={inputClass}
-          />
+        <div className="grid gap-4 sm:grid-cols-[1fr_auto]">
+          <div>
+            <label className="text-xs font-medium text-ink-500">Ciudad / Localidad</label>
+            <input
+              name="ciudad"
+              defaultValue={solicitud.ciudad ?? ""}
+              placeholder="Santa Fe"
+              disabled={!esPendiente}
+              className={inputClass}
+            />
+          </div>
+          <div>
+            <label className="text-xs font-medium text-ink-500">Tipo</label>
+            <p className="mt-0.5 text-xs text-ink-400">Define si el certificado dice &quot;ciudad&quot; o &quot;localidad&quot;.</p>
+            <select
+              name="tipoLocalidad"
+              defaultValue={solicitud.tipoLocalidad}
+              disabled={!esPendiente}
+              className={`${inputClass} sm:w-40`}
+            >
+              <option value="CIUDAD">Ciudad</option>
+              <option value="LOCALIDAD">Localidad</option>
+            </select>
+          </div>
         </div>
         <div>
           <label className="text-xs font-medium text-ink-500">Lugar de presentación</label>
