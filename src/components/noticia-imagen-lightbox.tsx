@@ -3,7 +3,15 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 
-export function NoticiaImagenLightbox({ src, alt }: { src: string; alt: string }) {
+export function NoticiaImagenLightbox({
+  src,
+  alt,
+  variant = "bloque",
+}: {
+  src: string;
+  alt: string;
+  variant?: "destacada" | "bloque";
+}) {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -20,9 +28,19 @@ export function NoticiaImagenLightbox({ src, alt }: { src: string; alt: string }
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="group relative block h-32 w-48 overflow-hidden rounded-lg border border-surface-border"
+        aria-label="Ampliar imagen"
+        className={
+          variant === "destacada"
+            ? "group relative block aspect-video w-full cursor-zoom-in overflow-hidden rounded-2xl border border-surface-border bg-surface shadow-sm"
+            : "group relative flex w-full cursor-zoom-in justify-center overflow-hidden rounded-2xl border border-surface-border bg-surface shadow-sm"
+        }
       >
-        <Image src={src} alt={alt} fill unoptimized className="object-cover" />
+        {variant === "destacada" ? (
+          <Image src={src} alt={alt} fill unoptimized sizes="768px" className="object-cover" />
+        ) : (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={src} alt={alt} loading="lazy" className="block h-auto max-h-[34rem] w-auto max-w-full object-contain" />
+        )}
         <span className="absolute inset-0 flex items-center justify-center bg-ink-900/0 transition-colors group-hover:bg-ink-900/40">
           <svg
             width="20"
@@ -62,7 +80,7 @@ export function NoticiaImagenLightbox({ src, alt }: { src: string; alt: string }
           <img
             src={src}
             alt={alt}
-            className="rounded-lg object-contain"
+            className="rounded-2xl object-contain"
             style={{ maxHeight: "calc(100vh - 2rem)", maxWidth: "calc(100vw - 2rem)" }}
             onClick={(e) => e.stopPropagation()}
           />

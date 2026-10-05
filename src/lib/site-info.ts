@@ -80,6 +80,14 @@ export async function getNoticias(tipo: "NOTICIA" | "CAPACITACION") {
   });
 }
 
+export async function getNoticiasRelacionadas(tipo: "NOTICIA" | "CAPACITACION", excluirId: string, cantidad = 3) {
+  return prisma.noticia.findMany({
+    where: { tipo, id: { not: excluirId } },
+    orderBy: { publicadoEn: "desc" },
+    take: cantidad,
+  });
+}
+
 export async function getNoticiaBySlug(slug: string) {
   return prisma.noticia.findUnique({
     where: { slug },

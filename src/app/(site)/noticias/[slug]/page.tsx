@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { getNoticiaBySlug } from "@/lib/site-info";
+import { getNoticiaBySlug, getNoticiasRelacionadas } from "@/lib/site-info";
 import { buildNoticiaMetadata } from "@/lib/noticia-metadata";
 import { NoticiaDetalle } from "@/components/noticia-detalle";
 
@@ -16,5 +16,7 @@ export default async function NoticiaDetallePage({ params }: { params: Promise<{
   const noticia = await getNoticiaBySlug(slug);
   if (!noticia || noticia.tipo !== "NOTICIA") notFound();
 
-  return <NoticiaDetalle {...noticia} basePath="/noticias" />;
+  const relacionadas = await getNoticiasRelacionadas("NOTICIA", noticia.id);
+
+  return <NoticiaDetalle {...noticia} tipo="NOTICIA" relacionadas={relacionadas} basePath="/noticias" />;
 }

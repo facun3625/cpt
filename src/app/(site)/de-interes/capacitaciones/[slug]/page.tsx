@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { getNoticiaBySlug } from "@/lib/site-info";
+import { getNoticiaBySlug, getNoticiasRelacionadas } from "@/lib/site-info";
 import { buildNoticiaMetadata } from "@/lib/noticia-metadata";
 import { NoticiaDetalle } from "@/components/noticia-detalle";
 
@@ -16,5 +16,7 @@ export default async function CapacitacionDetallePage({ params }: { params: Prom
   const noticia = await getNoticiaBySlug(slug);
   if (!noticia || noticia.tipo !== "CAPACITACION") notFound();
 
-  return <NoticiaDetalle {...noticia} basePath="/de-interes/capacitaciones" />;
+  const relacionadas = await getNoticiasRelacionadas("CAPACITACION", noticia.id);
+
+  return <NoticiaDetalle {...noticia} tipo="CAPACITACION" relacionadas={relacionadas} basePath="/de-interes/capacitaciones" />;
 }

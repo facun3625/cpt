@@ -1,6 +1,7 @@
 import { getVideoEmbedUrl } from "@/lib/video";
 import { NoticiaImagenLightbox } from "@/components/noticia-imagen-lightbox";
 import { textoBloqueAHtml } from "@/lib/sanitize-html";
+import { NoticiasGrid } from "@/components/noticias-grid";
 import { ShareButtons } from "@/components/share-buttons";
 import { noticiaUrl } from "@/lib/noticia-metadata";
 
@@ -16,6 +17,8 @@ type Bloque = {
 type NoticiaDetalleProps = {
   slug: string;
   basePath: string;
+  tipo: "NOTICIA" | "CAPACITACION";
+  relacionadas: { slug: string; titulo: string; pretexto: string | null; imagenDestacada: string | null; publicadoEn: Date }[];
   titulo: string;
   pretexto: string | null;
   imagenDestacada: string | null;
@@ -35,6 +38,8 @@ const dateFormatter = new Intl.DateTimeFormat("es-AR", {
 export function NoticiaDetalle({
   slug,
   basePath,
+  tipo,
+  relacionadas,
   titulo,
   pretexto,
   imagenDestacada,
@@ -67,7 +72,7 @@ export function NoticiaDetalle({
       <section className="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
         {imagenDestacada && mostrarImagenDestacadaEnCuerpo && (
           <div className="mb-10">
-            <NoticiaImagenLightbox src={imagenDestacada} alt={titulo} />
+            <NoticiaImagenLightbox src={imagenDestacada} alt={titulo} variant="destacada" />
           </div>
         )}
 
@@ -129,6 +134,19 @@ export function NoticiaDetalle({
           <ShareButtons url={noticiaUrl(basePath, slug)} title={titulo} />
         </div>
       </section>
+
+      {relacionadas.length > 0 && (
+        <section className="border-t border-surface-border bg-surface">
+          <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+            <h2 className="text-2xl font-semibold text-ink-900">
+              {tipo === "NOTICIA" ? "Otras noticias que te pueden interesar" : "Otras capacitaciones que te pueden interesar"}
+            </h2>
+            <div className="mt-8">
+              <NoticiasGrid items={relacionadas} basePath={basePath} />
+            </div>
+          </div>
+        </section>
+      )}
     </div>
   );
 }
