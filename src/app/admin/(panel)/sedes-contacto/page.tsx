@@ -146,13 +146,23 @@ export default async function SedesContactoPage() {
 
       <h2 className="mt-12 text-xs font-semibold uppercase tracking-wide text-ink-400">Redes sociales</h2>
       <form action={updateSettings} className="mt-4 grid gap-3 rounded-xl border border-surface-border bg-white p-5 sm:grid-cols-3">
-        <div className="sm:col-span-2">
+        <div>
           <label className="text-xs font-medium text-ink-500">Link de Instagram</label>
           <input
             name="instagramUrl"
             type="url"
             placeholder="https://instagram.com/cptsantafe"
             defaultValue={settings.instagramUrl ?? ""}
+            className={inputClass}
+          />
+        </div>
+        <div>
+          <label className="text-xs font-medium text-ink-500">Link de Facebook</label>
+          <input
+            name="facebookUrl"
+            type="url"
+            placeholder="https://facebook.com/cptsantafe"
+            defaultValue={settings.facebookUrl ?? ""}
             className={inputClass}
           />
         </div>

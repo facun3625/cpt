@@ -16,7 +16,7 @@ export async function getContactEmails() {
 
 export async function getSiteSettings() {
   const settings = await prisma.siteSettings.findUnique({ where: { id: "settings" } });
-  return settings ?? { id: "settings", instagramUrl: null };
+  return settings ?? { id: "settings", instagramUrl: null, facebookUrl: null };
 }
 
 export async function getValorM2Entries() {

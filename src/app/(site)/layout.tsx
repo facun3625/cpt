@@ -20,7 +20,7 @@ export default async function SiteLayout({
 
   return (
     <>
-      <SiteHeader sedes={headerSedes} instagramUrl={settings.instagramUrl} isAdmin={Boolean(session?.adminId)} />
+      <SiteHeader sedes={headerSedes} instagramUrl={settings.instagramUrl} facebookUrl={settings.facebookUrl} isAdmin={Boolean(session?.adminId)} />
       <main className="flex-1">{children}</main>
       <SiteFooter sedes={sedes} emails={emails} />
       <div className="h-16 sm:hidden" aria-hidden="true" />

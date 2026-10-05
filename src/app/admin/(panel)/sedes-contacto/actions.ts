@@ -85,11 +85,12 @@ export async function deleteEmail(id: string) {
 export async function updateSettings(formData: FormData) {
   await verifyAdminSession();
   const instagramUrl = String(formData.get("instagramUrl") ?? "").trim();
+  const facebookUrl = String(formData.get("facebookUrl") ?? "").trim();
 
   await prisma.siteSettings.upsert({
     where: { id: "settings" },
-    update: { instagramUrl: instagramUrl || null },
-    create: { id: "settings", instagramUrl: instagramUrl || null },
+    update: { instagramUrl: instagramUrl || null, facebookUrl: facebookUrl || null },
+    create: { id: "settings", instagramUrl: instagramUrl || null, facebookUrl: facebookUrl || null },
   });
   revalidatePath("/", "layout");
   redirect(`${PATH}?ok=1`);

@@ -10,10 +10,12 @@ import type { Sede } from "@/generated/prisma/client";
 export function SiteHeader({
   sedes,
   instagramUrl,
+  facebookUrl,
   isAdmin,
 }: {
   sedes: Sede[];
   instagramUrl: string | null;
+  facebookUrl: string | null;
   isAdmin?: boolean;
 }) {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -150,6 +152,24 @@ export function SiteHeader({
               <rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" strokeWidth="1.7" />
               <circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="1.7" />
               <circle cx="17.2" cy="6.8" r="1.1" fill="currentColor" />
+            </svg>
+          </a>
+          )}
+          {facebookUrl && (
+          <a
+            href={facebookUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Facebook"
+            className="flex items-center text-white/75 transition-colors hover:text-white"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path
+                d="M14 8.5V7c0-.8.4-1.2 1.2-1.2H17V3h-2.4C12.2 3 11 4.5 11 6.8v1.7H9v3h2V21h3v-9.5h2.4l.6-3H14Z"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinejoin="round"
+              />
             </svg>
           </a>
           )}

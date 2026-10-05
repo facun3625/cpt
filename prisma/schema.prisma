@@ -50,6 +50,7 @@ model ContactEmail {
 model SiteSettings {
   id           String  @id @default("settings")
   instagramUrl String?
+  facebookUrl  String?
 }
 
 model ValorM2Entry {

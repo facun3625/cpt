@@ -1,6 +1,8 @@
 import { getVideoEmbedUrl } from "@/lib/video";
 import { NoticiaImagenLightbox } from "@/components/noticia-imagen-lightbox";
 import { textoBloqueAHtml } from "@/lib/sanitize-html";
+import { ShareButtons } from "@/components/share-buttons";
+import { noticiaUrl } from "@/lib/noticia-metadata";
 
 type Bloque = {
   id: string;
@@ -12,6 +14,8 @@ type Bloque = {
 };
 
 type NoticiaDetalleProps = {
+  slug: string;
+  basePath: string;
   titulo: string;
   pretexto: string | null;
   imagenDestacada: string | null;
@@ -29,6 +33,8 @@ const dateFormatter = new Intl.DateTimeFormat("es-AR", {
 });
 
 export function NoticiaDetalle({
+  slug,
+  basePath,
   titulo,
   pretexto,
   imagenDestacada,
@@ -118,6 +124,10 @@ export function NoticiaDetalle({
         ) : (
           <p className="text-ink-500">Todavía no se cargó el contenido completo de esta publicación.</p>
         )}
+
+        <div className="mt-12 border-t border-surface-border pt-6">
+          <ShareButtons url={noticiaUrl(basePath, slug)} title={titulo} />
+        </div>
       </section>
     </div>
   );

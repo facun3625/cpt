@@ -1,5 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
+import { ShareMenu } from "@/components/share-buttons";
+import { noticiaUrl } from "@/lib/noticia-metadata";
 
 type NoticiaCard = {
   slug: string;
@@ -28,10 +30,10 @@ export function NoticiasGrid({ items, basePath }: { items: NoticiaCard[]; basePa
   return (
     <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
       {items.map((item) => (
+        <div key={item.slug} className="relative">
         <Link
-          key={item.slug}
           href={`${basePath}/${item.slug}`}
-          className="group overflow-hidden rounded-xl border border-surface-border bg-white shadow-sm transition-all duration-300 hover:-translate-y-1.5 hover:border-primary-200 hover:shadow-xl"
+          className="group block h-full overflow-hidden rounded-xl border border-surface-border bg-white shadow-sm transition-all duration-300 hover:-translate-y-1.5 hover:border-primary-200 hover:shadow-xl"
         >
           {item.imagenDestacada ? (
             <div className="relative h-48 w-full overflow-hidden">
@@ -61,6 +63,8 @@ export function NoticiasGrid({ items, basePath }: { items: NoticiaCard[]; basePa
             </span>
           </div>
         </Link>
+        <ShareMenu url={noticiaUrl(basePath, item.slug)} title={item.titulo} className="absolute right-3 top-3 z-10" />
+        </div>
       ))}
     </div>
   );
