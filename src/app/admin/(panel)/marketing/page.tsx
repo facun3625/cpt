@@ -55,7 +55,7 @@ export default async function MarketingAdminPage({
   const siteUrl = process.env.SITE_URL || "http://localhost:3000";
 
   return (
-    <div className="max-w-5xl px-8 py-8">
+    <div className="px-8 py-8">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-semibold text-ink-900">Email Marketing</h1>
