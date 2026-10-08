@@ -1,53 +1,37 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { verifyAdminSession } from "@/lib/admin-dal";
 import { saveUploadedMarketingImage } from "@/lib/upload";
-import { sendMail } from "@/lib/mailer";
 import { construirEmailHtml } from "@/lib/email-template";
+import { sanitizeNoticiaHtml, stripHtml } from "@/lib/sanitize-html";
+import { procesarCola, TAMANO_LOTE, INTERVALO_LOTE_MIN } from "@/lib/marketing-queue";
 import { getSedes, getContactEmails, getSiteSettings } from "@/lib/site-info";
 import { logActivity } from "@/lib/activity-log";
 
 const PATH = "/admin/marketing";
-const CONCURRENCIA = 5;
 
-async function enviarATodos(emails: string[], subject: string, html: string, text: string) {
-  const queue = [...emails];
-  let enviados = 0;
-  let fallidos = 0;
-
-  async function worker() {
-    while (queue.length > 0) {
-      const email = queue.shift();
-      if (!email) return;
-      const result = await sendMail({ to: email, subject, html, text });
-      if (result.ok) enviados++;
-      else fallidos++;
-    }
-  }
-
-  await Promise.all(Array.from({ length: Math.min(CONCURRENCIA, emails.length) }, () => worker()));
-  return { enviados, fallidos };
+export async function subirImagenEmail(formData: FormData): Promise<string | null> {
+  await verifyAdminSession();
+  const imagen = formData.get("imagen");
+  if (!(imagen instanceof File) || imagen.size === 0) return null;
+  return saveUploadedMarketingImage(imagen);
 }
 
 export async function enviarCampania(formData: FormData) {
   const session = await verifyAdminSession();
 
   const titulo = String(formData.get("titulo") ?? "").trim();
-  const contenido = String(formData.get("contenido") ?? "").trim();
   const destinatarios = String(formData.get("destinatarios") ?? "").trim();
-  const imagen = formData.get("imagen");
-  const imagenPosicion = formData.get("imagenPosicion") === "despues" ? "despues" : "antes";
+  const siteUrl = process.env.SITE_URL || "http://localhost:3000";
+  const contenido = sanitizeNoticiaHtml(String(formData.get("contenido") ?? "").trim(), { email: { siteUrl } });
 
-  if (!titulo || !contenido || !["SUSCRIPTORES", "MATRICULADOS", "AMBOS"].includes(destinatarios)) {
-    return;
-  }
-
-  let imagenUrl: string | null = null;
-  if (imagen instanceof File && imagen.size > 0) {
-    imagenUrl = await saveUploadedMarketingImage(imagen);
+  const tieneContenido = stripHtml(contenido).length > 0 || contenido.includes("<img");
+  if (!titulo || !tieneContenido || !["SUSCRIPTORES", "MATRICULADOS", "AMBOS"].includes(destinatarios)) {
+    redirect(`${PATH}?error=datos`);
   }
 
   const [suscriptores, matriculados] = await Promise.all([
@@ -64,47 +48,61 @@ export async function enviarCampania(formData: FormData) {
         .filter((e): e is string => Boolean(e)),
     ),
   );
+  if (emails.length === 0) redirect(`${PATH}?error=sin-destinatarios`);
 
-  const [sedes, contactEmails, siteSettings] = await Promise.all([
-    getSedes(),
-    getContactEmails(),
-    getSiteSettings(),
-  ]);
+  const [sedes, contactEmails, siteSettings] = await Promise.all([getSedes(), getContactEmails(), getSiteSettings()]);
 
-  const siteUrl = process.env.SITE_URL || "http://localhost:3000";
   const html = construirEmailHtml({
     titulo,
     contenido,
-    imagenUrl,
-    imagenPosicion,
     siteUrl,
     footer: {
       direccion: sedes[0]?.direccion ?? null,
       telefono: sedes[0]?.telefono ?? null,
       email: contactEmails[0]?.value ?? null,
       instagramUrl: siteSettings.instagramUrl ?? null,
+      facebookUrl: siteSettings.facebookUrl ?? null,
     },
   });
 
-  const { enviados, fallidos } = await enviarATodos(emails, titulo, html, contenido);
-
-  await prisma.emailCampaign.create({
+  // La campaña queda "en cola" y se envía en segundo plano de a TAMANO_LOTE por vez (ver marketing-queue).
+  const campania = await prisma.emailCampaign.create({
     data: {
       titulo,
       contenido,
-      imagenUrl,
+      html,
       destinatarios: destinatarios as "SUSCRIPTORES" | "MATRICULADOS" | "AMBOS",
-      cantidadEnviados: enviados,
-      cantidadFallidos: fallidos,
+      estado: "EN_COLA",
+      total: emails.length,
     },
   });
+  for (let i = 0; i < emails.length; i += 5000) {
+    await prisma.emailEnvio.createMany({
+      data: emails.slice(i, i + 5000).map((email) => ({ campaignId: campania.id, email })),
+    });
+  }
 
   await logActivity(
     session.email,
-    "Envió una campaña de email",
-    `"${titulo}" — ${enviados} enviados${fallidos > 0 ? `, ${fallidos} fallidos` : ""}`,
+    "Programó una campaña de email",
+    `"${titulo}" — ${emails.length} destinatarios, en lotes de ${TAMANO_LOTE} cada ${INTERVALO_LOTE_MIN} min`,
   );
 
-  revalidatePath("/", "layout");
+  after(() => procesarCola());
+
+  revalidatePath(PATH);
   redirect(`${PATH}?ok=1`);
+}
+
+export async function cancelarCampania(formData: FormData) {
+  const session = await verifyAdminSession();
+  const id = String(formData.get("id") ?? "");
+  const campania = await prisma.emailCampaign.findUnique({ where: { id } });
+  if (!campania || campania.estado !== "EN_COLA") redirect(PATH);
+
+  await prisma.emailCampaign.update({ where: { id }, data: { estado: "CANCELADA" } });
+  await logActivity(session.email, "Canceló una campaña de email", `"${campania.titulo}"`);
+
+  revalidatePath(PATH);
+  redirect(`${PATH}?cancelada=1`);
 }

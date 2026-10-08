@@ -94,7 +94,15 @@ export async function saveUploadedMarketingImage(file: File): Promise<string | n
   await mkdir(MARKETING_DIR, { recursive: true });
 
   const filename = `${crypto.randomUUID()}.${extension}`;
-  const buffer = Buffer.from(await file.arrayBuffer());
+  const original = Buffer.from(await file.arrayBuffer());
+  // Los mails con imágenes pesadas llegan lento o caen en spam: acotamos a 1200px de ancho.
+  let buffer: Buffer = original;
+  try {
+    const img = sharp(original).rotate().resize({ width: 1200, withoutEnlargement: true });
+    buffer = await (extension === "png" ? img.png() : img.jpeg({ quality: 85 })).toBuffer();
+  } catch {
+    return null;
+  }
 
   await writeFile(path.join(MARKETING_DIR, filename), buffer);
   return `/uploads/marketing/${filename}`;

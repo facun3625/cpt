@@ -330,15 +330,44 @@ enum DestinatarioEmail {
   AMBOS
 }
 
+enum EstadoCampania {
+  EN_COLA
+  COMPLETADA
+  CANCELADA
+}
+
+enum EstadoEnvio {
+  PENDIENTE
+  ENVIADO
+  FALLIDO
+}
+
 model EmailCampaign {
   id               String            @id @default(cuid())
   titulo           String
   contenido        String
+  html             String?
   imagenUrl        String?
   destinatarios    DestinatarioEmail
+  estado           EstadoCampania    @default(COMPLETADA)
+  total            Int               @default(0)
   cantidadEnviados Int               @default(0)
   cantidadFallidos Int               @default(0)
   enviadoEn        DateTime          @default(now())
+  envios           EmailEnvio[]
+}
+
+model EmailEnvio {
+  id         String        @id @default(cuid())
+  campaignId String
+  campaign   EmailCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  email      String
+  estado     EstadoEnvio   @default(PENDIENTE)
+  error      String?
+  enviadoEn  DateTime?
+
+  @@index([campaignId, estado])
+  @@index([enviadoEn])
 }
 
 model LinkInteres {

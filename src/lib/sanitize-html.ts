@@ -8,6 +8,12 @@ const ALLOWED_TAGS = new Set([
   "span", "ul", "ol", "li", "a", "h2", "h3", "blockquote",
 ]);
 
+export type SanitizeOptions = {
+  // Modo email: además permite color de texto e imágenes (con ancho), y agrega estilos
+  // inline (los clientes de correo no cargan CSS). `siteUrl` completa las URLs relativas.
+  email?: { siteUrl: string };
+};
+
 function escapeAttr(value: string): string {
   return value
     .replace(/&/g, "&amp;")
@@ -16,7 +22,7 @@ function escapeAttr(value: string): string {
     .replace(/>/g, "&gt;");
 }
 
-function sanitizeStyle(style: string): string {
+function sanitizeStyle(style: string, email: boolean): string {
   const decls: string[] = [];
   for (const part of style.split(";")) {
     const idx = part.indexOf(":");
@@ -27,6 +33,8 @@ function sanitizeStyle(style: string): string {
       decls.push(`text-align: ${val.toLowerCase()}`);
     } else if (prop === "font-size" && /^\d+(\.\d+)?(px|em|rem|%)$/i.test(val)) {
       decls.push(`font-size: ${val}`);
+    } else if (email && prop === "color" && /^(#[0-9a-f]{3,8}|rgb\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*\))$/i.test(val)) {
+      decls.push(`color: ${val.toLowerCase()}`);
     } else if (prop === "font-weight" && /^(bold|normal|\d{3})$/i.test(val)) {
       decls.push(`font-weight: ${val.toLowerCase()}`);
     }
@@ -34,17 +42,37 @@ function sanitizeStyle(style: string): string {
   return decls.join("; ");
 }
 
-function sanitizeAttrs(tag: string, attrs: string): string {
+function absolutizar(url: string, siteUrl: string): string {
+  return url.startsWith("/") ? `${siteUrl}${url}` : url;
+}
+
+const EMAIL_ESTILO_BASE: Record<string, string> = {
+  p: "margin:0 0 14px;",
+  ul: "margin:0 0 14px 20px; padding:0;",
+  ol: "margin:0 0 14px 20px; padding:0;",
+  blockquote: "margin:0 0 14px; padding-left:12px; border-left:3px solid #c9d6d3;",
+};
+
+function sanitizeAttrs(tag: string, attrs: string, opts: SanitizeOptions): string {
+  const email = opts.email;
   const out: string[] = [];
   let hasHref = false;
+  let style = "";
+  let width: string | null = null;
   const re = /([a-zA-Z-]+)\s*=\s*"([^"]*)"|([a-zA-Z-]+)\s*=\s*'([^']*)'/g;
   let m: RegExpExecArray | null;
   while ((m = re.exec(attrs))) {
     const name = (m[1] ?? m[3]).toLowerCase();
     const value = m[2] ?? m[4] ?? "";
     if (name === "style") {
-      const s = sanitizeStyle(value);
-      if (s) out.push(`style="${escapeAttr(s)}"`);
+      style = sanitizeStyle(value, Boolean(email));
+    } else if (email && tag === "img" && name === "src") {
+      const src = value.trim();
+      if (/^(https?:\/\/|\/uploads\/)/i.test(src)) out.push(`src="${escapeAttr(absolutizar(src, email.siteUrl))}"`);
+    } else if (email && tag === "img" && name === "width") {
+      if (/^\d{2,4}$/.test(value.trim())) width = value.trim();
+    } else if (email && tag === "img" && name === "alt") {
+      out.push(`alt="${escapeAttr(value)}"`);
     } else if (tag === "a" && name === "href") {
       const href = value.trim();
       if (/^(https?:|mailto:)/i.test(href)) {
@@ -55,18 +83,27 @@ function sanitizeAttrs(tag: string, attrs: string): string {
   }
   if (tag === "a" && hasHref) {
     out.push('target="_blank"', 'rel="noopener noreferrer"');
+    if (email) style = `${style ? `${style}; ` : ""}text-decoration: underline`;
   }
+  if (tag === "img") {
+    if (width) out.push(`width="${width}"`);
+    style = `${style ? `${style}; ` : ""}max-width:100%; height:auto; border-radius:8px; vertical-align:bottom`;
+  }
+  if (email && EMAIL_ESTILO_BASE[tag]) style = `${EMAIL_ESTILO_BASE[tag]} ${style}`.trim();
+  if (style) out.push(`style="${escapeAttr(style)}"`);
   return out.length ? " " + out.join(" ") : "";
 }
 
-export function sanitizeNoticiaHtml(html: string): string {
+export function sanitizeNoticiaHtml(html: string, opts: SanitizeOptions = {}): string {
   if (!html) return "";
   return html.replace(/<(\/?)([a-zA-Z0-9]+)((?:[^<>"']|"[^"]*"|'[^']*')*)>/g, (_match, slash, rawTag, attrs) => {
     const tag = rawTag.toLowerCase();
-    if (!ALLOWED_TAGS.has(tag)) return "";
-    if (slash) return `</${tag}>`;
+    if (!ALLOWED_TAGS.has(tag) && !(opts.email && tag === "img")) return "";
+    if (slash) return tag === "img" ? "" : `</${tag}>`;
     if (tag === "br") return "<br>";
-    return `<${tag}${sanitizeAttrs(tag, attrs)}>`;
+    const attrsLimpios = sanitizeAttrs(tag, attrs, opts);
+    if (tag === "img" && !attrsLimpios.includes("src=")) return "";
+    return `<${tag}${attrsLimpios}>`;
   });
 }
 

@@ -1,8 +1,11 @@
+import { sanitizeNoticiaHtml } from "@/lib/sanitize-html";
+
 export type EmailFooterInfo = {
   direccion?: string | null;
   telefono?: string | null;
   email?: string | null;
   instagramUrl?: string | null;
+  facebookUrl?: string | null;
 };
 
 export type EmailTemplateData = {
@@ -29,11 +32,15 @@ export function construirEmailHtml({
   siteUrl,
   footer,
 }: EmailTemplateData) {
-  const parrafos = contenido
-    .split("\n")
-    .filter((linea) => linea.trim().length > 0)
-    .map((linea) => `<p style="margin:0 0 14px;">${escapeHtml(linea)}</p>`)
-    .join("");
+  // El cuerpo viene del editor como HTML (se sanitiza con lista blanca); las campañas
+  // viejas lo guardaron como texto plano, una línea por párrafo.
+  const parrafos = /<[a-zA-Z][^>]*>/.test(contenido)
+    ? sanitizeNoticiaHtml(contenido, { email: { siteUrl } })
+    : contenido
+        .split("\n")
+        .filter((linea) => linea.trim().length > 0)
+        .map((linea) => `<p style="margin:0 0 14px;">${escapeHtml(linea)}</p>`)
+        .join("");
 
   const datosContacto = [footer?.direccion, footer?.telefono, footer?.email].filter(Boolean).join(" · ");
 
@@ -75,6 +82,7 @@ export function construirEmailHtml({
         <p style="margin:0; font-size:12px;">
           <a href="${siteUrl}" style="color:#016099; text-decoration:none;">${siteUrl.replace(/^https?:\/\//, "")}</a>
           ${footer?.instagramUrl ? ` · <a href="${footer.instagramUrl}" style="color:#016099; text-decoration:none;">Instagram</a>` : ""}
+          ${footer?.facebookUrl ? ` · <a href="${footer.facebookUrl}" style="color:#016099; text-decoration:none;">Facebook</a>` : ""}
         </p>
         <p style="margin:10px 0 0; font-size:11px; color:#9aa6a2;">
           Recibiste este correo por ser matriculado o suscriptor del CPT Santa Fe.

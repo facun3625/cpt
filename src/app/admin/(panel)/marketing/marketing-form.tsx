@@ -2,53 +2,50 @@
 
 import { useMemo, useState } from "react";
 import { construirEmailHtml, type EmailFooterInfo } from "@/lib/email-template";
-import { enviarCampania } from "./actions";
+import { RichTextEditor } from "@/components/admin/rich-text-editor";
+import { enviarCampania, subirImagenEmail } from "./actions";
 
 const inputClass =
   "mt-1 w-full rounded-lg border border-surface-border px-3 py-2 text-sm outline-none focus:border-primary-400";
-const textareaClass = `${inputClass} resize-y`;
-const fileInputClass =
-  "mt-2 block text-sm text-ink-600 file:mr-3 file:cursor-pointer file:rounded-full file:border-0 file:bg-primary-700 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-primary-900";
+
+async function subirImagen(file: File): Promise<string | null> {
+  const fd = new FormData();
+  fd.append("imagen", file);
+  try {
+    return await subirImagenEmail(fd);
+  } catch {
+    return null;
+  }
+}
 
 export function MarketingForm({
   suscriptoresCount,
   matriculadosCount,
   siteUrl,
   footer,
+  tamanoLote,
+  intervaloMin,
 }: {
   suscriptoresCount: number;
   matriculadosCount: number;
+  tamanoLote: number;
+  intervaloMin: number;
   siteUrl: string;
   footer: EmailFooterInfo;
 }) {
   const [titulo, setTitulo] = useState("");
   const [contenido, setContenido] = useState("");
-  const [imagenPreview, setImagenPreview] = useState<string | null>(null);
-  const [imagenPosicion, setImagenPosicion] = useState<"antes" | "despues">("antes");
 
   const previewHtml = useMemo(
     () =>
       construirEmailHtml({
         titulo: titulo || "Título del correo",
-        contenido: contenido || "El contenido de tu mensaje aparecerá acá a medida que lo escribís.",
-        imagenUrl: imagenPreview,
-        imagenPosicion,
+        contenido: contenido || "<p>El contenido de tu mensaje aparecerá acá a medida que lo escribís.</p>",
         siteUrl,
         footer,
       }),
-    [titulo, contenido, imagenPreview, imagenPosicion, siteUrl, footer],
+    [titulo, contenido, siteUrl, footer],
   );
-
-  function handleImagenChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) {
-      setImagenPreview(null);
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = () => setImagenPreview(typeof reader.result === "string" ? reader.result : null);
-    reader.readAsDataURL(file);
-  }
 
   return (
     <div className="mt-6 grid gap-6 lg:grid-cols-2">
@@ -65,48 +62,19 @@ export function MarketingForm({
         </div>
         <div>
           <label className="text-xs font-medium text-ink-500">Texto</label>
-          <textarea
+          <p className="mt-0.5 text-xs text-ink-400">
+            Seleccioná una parte del texto para darle su propio estilo (negrita, color, alineación, link). Para
+            agregar una imagen, ubicá el cursor donde va y usá “Imagen”; después hacé clic en ella para cambiar su
+            tamaño.
+          </p>
+          <RichTextEditor
             name="contenido"
-            required
-            rows={6}
-            className={textareaClass}
-            value={contenido}
-            onChange={(e) => setContenido(e.target.value)}
+            initialHtml=""
+            conExtras
+            subirImagen={subirImagen}
+            onChange={setContenido}
+            placeholder="Escribí el mensaje del correo…"
           />
-        </div>
-        <div>
-          <label className="text-xs font-medium text-ink-500">Imagen (opcional)</label>
-          <input
-            name="imagen"
-            type="file"
-            accept="image/jpeg,image/png"
-            className={fileInputClass}
-            onChange={handleImagenChange}
-          />
-          <div className="mt-3 flex gap-4">
-            <label className="flex items-center gap-2 text-sm text-ink-600">
-              <input
-                type="radio"
-                name="imagenPosicion"
-                value="antes"
-                checked={imagenPosicion === "antes"}
-                onChange={() => setImagenPosicion("antes")}
-                className="accent-primary-700"
-              />
-              Antes del texto
-            </label>
-            <label className="flex items-center gap-2 text-sm text-ink-600">
-              <input
-                type="radio"
-                name="imagenPosicion"
-                value="despues"
-                checked={imagenPosicion === "despues"}
-                onChange={() => setImagenPosicion("despues")}
-                className="accent-primary-700"
-              />
-              Después del texto
-            </label>
-          </div>
         </div>
         <div>
           <label className="text-xs font-medium text-ink-500">Destinatarios</label>
@@ -118,8 +86,9 @@ export function MarketingForm({
         </div>
 
         <p className="text-xs text-ink-400">
-          El envío se hace en el momento y puede tardar unos minutos si la lista es grande — no cierres esta página
-          hasta que redirija.
+          El envío se hace en segundo plano, en lotes de {tamanoLote} mails cada {intervaloMin} minutos, para no
+          superar el límite del servidor de correo. Podés cerrar esta página: el seguimiento está en el historial de
+          envíos.
         </p>
 
         <button

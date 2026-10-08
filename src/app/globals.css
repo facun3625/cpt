@@ -104,6 +104,16 @@ body {
   color: var(--color-primary-700);
   text-decoration: underline;
 }
+.noticia-cuerpo img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+.noticia-cuerpo img[data-sel] {
+  outline: 3px solid var(--color-primary-500);
+  outline-offset: 2px;
+}
 .noticia-cuerpo blockquote {
   border-left: 3px solid var(--color-surface-border);
   padding-left: 1rem;
